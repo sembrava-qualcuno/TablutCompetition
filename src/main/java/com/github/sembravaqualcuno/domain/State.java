@@ -237,4 +237,7 @@ public abstract class State {
 		return count;
 	}
 
+	public abstract boolean terminalCheck();
+
+	public abstract int euristicsFunction();
 }

@@ -139,4 +139,15 @@ public class StateTablut extends State implements Serializable {
 		return true;
 	}
 
+	@Override
+	public boolean terminalCheck() {
+		return getTurn().equalsTurn("WHITEWIN") ||
+				getTurn().equalsTurn("BLACKWIN") ||
+				getTurn().equalsTurn("DRAW");
+	}
+
+	@Override //TODO implement the actual euristicsFunction
+	public int euristicsFunction() {
+		return 0;
+	}
 }
