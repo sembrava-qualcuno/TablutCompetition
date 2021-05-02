@@ -1,7 +1,10 @@
 package com.github.sembravaqualcuno.domain;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract class for a State of a game We have a representation of the board
@@ -239,5 +242,8 @@ public abstract class State {
 
 	public abstract boolean terminalCheck();
 
-	public abstract int euristicsFunction();
+	public abstract int heuristicsFunction();
+
+	public abstract List<Action> getActions() throws IOException;
+
 }

@@ -85,4 +85,8 @@ public class Action implements Serializable {
 		return Integer.parseInt(this.to.charAt(1) + "") - 1;
 	}
 
+	public static String getStringFromIndex(int row, int column) {
+		return Character.toLowerCase(column + 97) + String.valueOf(row);
+	}
+
 }

@@ -1,6 +1,9 @@
 package com.github.sembravaqualcuno.domain;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -108,7 +111,6 @@ public class StateTablut extends State implements Serializable {
 		result.setTurn(this.turn);
 		return result;
 	}
-	
 
 	@Override
 	public boolean equals(Object obj) {
@@ -147,7 +149,51 @@ public class StateTablut extends State implements Serializable {
 	}
 
 	@Override //TODO implement the actual euristicsFunction
-	public int euristicsFunction() {
+	public int heuristicsFunction() {
 		return 0;
+	}
+
+	/**
+	 * @return The list of actions available for the current state.
+	 */
+	@Override
+	public List<Action> getActions() throws IOException {
+		List<Action> result = new ArrayList<>();
+
+		for(int i = 0; i < board.length; i++) {
+			for(int j= 0; j < board.length; j++) {
+				if(board[i][j].toString().equals(turn.toString())) {
+					result.addAll(getPawnActions(i, j));
+				}
+			}
+		}
+
+		return result;
+	}
+
+	private List<Action> getPawnActions(int row, int column) throws IOException {
+		List<Action> result = new ArrayList<>();
+
+		//Check at the bottom
+		for(int i = row + 1; i < board.length && board[i][column].equalsPawn("EMPTY"); i++) {
+			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(i, column), turn));
+		}
+
+		//Check at the top
+		for(int i = row - 1; i >= 0 && board[i][column].equalsPawn("EMPTY"); i--) {
+			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(i, column), turn));
+		}
+
+		//Check at the right
+		for(int j = column + 1; j < board[row].length && board[row][j].equalsPawn("EMPTY"); j++) {
+			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(row, j), turn));
+		}
+
+		//Check at the left
+		for(int j = column - 1; j >= 0 && board[row][j].equalsPawn("EMPTY"); j--) {
+			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(row, j), turn));
+		}
+
+		return result;
 	}
 }
