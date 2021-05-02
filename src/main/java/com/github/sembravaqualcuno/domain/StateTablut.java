@@ -30,6 +30,40 @@ public class StateTablut extends State implements Serializable {
 
 		this.board[4][4] = Pawn.KING;
 
+		this.board[0][1] = Pawn.ESCAPE;
+		this.board[0][2] = Pawn.ESCAPE;
+		this.board[0][6] = Pawn.ESCAPE;
+		this.board[0][7] = Pawn.ESCAPE;
+		this.board[1][0] = Pawn.ESCAPE;
+		this.board[2][0] = Pawn.ESCAPE;
+		this.board[6][0] = Pawn.ESCAPE;
+		this.board[7][0] = Pawn.ESCAPE;
+		this.board[8][1] = Pawn.ESCAPE;
+		this.board[8][2] = Pawn.ESCAPE;
+		this.board[8][6] = Pawn.ESCAPE;
+		this.board[8][7] = Pawn.ESCAPE;
+		this.board[1][8] = Pawn.ESCAPE;
+		this.board[2][8] = Pawn.ESCAPE;
+		this.board[6][8] = Pawn.ESCAPE;
+		this.board[7][8] = Pawn.ESCAPE;
+
+		this.board[0][3] = Pawn.CAMP;
+		this.board[0][4] = Pawn.CAMP;
+		this.board[0][5] = Pawn.CAMP;
+		this.board[3][0] = Pawn.CAMP;
+		this.board[4][0] = Pawn.CAMP;
+		this.board[5][0] = Pawn.CAMP;
+		this.board[8][3] = Pawn.CAMP;
+		this.board[8][4] = Pawn.CAMP;
+		this.board[8][5] = Pawn.CAMP;
+		this.board[3][8] = Pawn.CAMP;
+		this.board[4][8] = Pawn.CAMP;
+		this.board[5][8] = Pawn.CAMP;
+		this.board[1][4] = Pawn.CAMP;
+		this.board[4][1] = Pawn.CAMP;
+		this.board[7][4] = Pawn.CAMP;
+		this.board[4][7] = Pawn.CAMP;
+
 		this.board[2][4] = Pawn.WHITE;
 		this.board[3][4] = Pawn.WHITE;
 		this.board[5][4] = Pawn.WHITE;
