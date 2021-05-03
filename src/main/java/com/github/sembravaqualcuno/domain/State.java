@@ -240,7 +240,7 @@ public abstract class State {
 		return count;
 	}
 
-	public abstract boolean terminalCheck();
+	public abstract boolean isTerminal();
 
 	public abstract int heuristicsFunction();
 

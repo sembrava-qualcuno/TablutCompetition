@@ -148,22 +148,19 @@ public class StateTablut extends State implements Serializable {
 	 * @return True if we've reached a terminal state, false otherwise
 	 */
 	@Override
-	public boolean terminalCheck() {
+	public boolean isTerminal() {
 		return getTurn().equals(Turn.WHITEWIN) ||
 				getTurn().equals(Turn.BLACKWIN) ||
 				getTurn().equals(Turn.DRAW);
 	}
 
 	/**
+	 * This heuristics function initializes the values for white pawns, then it converts some values
+	 * by multiplying them by -1 if incoherent with black pawns behaviour
 	 * @return The heuristics value related to this state
 	 */
 	@Override //TODO implement the actual euristicsFunction
 	public int heuristicsFunction() {
-		/*
-		 * This heuristics function initializes the values for white pawns, then it converts some values
-		 * by multiplying them by -1 if incoherent with black pawns behaviour
-		 */
-
 		//Positive heuristics initialization
 		int kingEscaped = 400;
 		int kingCouldEscape = 40;
@@ -288,22 +285,22 @@ public class StateTablut extends State implements Serializable {
 		List<Action> result = new ArrayList<>();
 
 		//Check at the bottom
-		for(int i = row + 1; i < board.length && board[i][column].equalsPawn("EMPTY"); i++) {
+		for(int i = row + 1; i < board.length && board[i][column].equals(Pawn.EMPTY); i++) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(i, column), turn));
 		}
 
 		//Check at the top
-		for(int i = row - 1; i >= 0 && board[i][column].equalsPawn("EMPTY"); i--) {
+		for(int i = row - 1; i >= 0 && board[i][column].equals(Pawn.EMPTY); i--) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(i, column), turn));
 		}
 
 		//Check at the right
-		for(int j = column + 1; j < board[row].length && board[row][j].equalsPawn("EMPTY"); j++) {
+		for(int j = column + 1; j < board[row].length && board[row][j].equals(Pawn.EMPTY); j++) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(row, j), turn));
 		}
 
 		//Check at the left
-		for(int j = column - 1; j >= 0 && board[row][j].equalsPawn("EMPTY"); j--) {
+		for(int j = column - 1; j >= 0 && board[row][j].equals(Pawn.EMPTY); j--) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(row, j), turn));
 		}
 
