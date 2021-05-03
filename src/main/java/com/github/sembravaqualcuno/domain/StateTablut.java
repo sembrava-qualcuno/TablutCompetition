@@ -16,6 +16,8 @@ import java.util.List;
 public class StateTablut extends State implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	private static final int initialPawnsBlack = 16;
+	private static final int initialPawnsWhite = 9;
 
 	public StateTablut() {
 		super();
@@ -112,6 +114,7 @@ public class StateTablut extends State implements Serializable {
 		return result;
 	}
 
+
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -141,17 +144,127 @@ public class StateTablut extends State implements Serializable {
 		return true;
 	}
 
+	/**
+	 * @return True if we've reached a terminal state, false otherwise
+	 */
 	@Override
 	public boolean terminalCheck() {
-		return getTurn().equalsTurn("WHITEWIN") ||
-				getTurn().equalsTurn("BLACKWIN") ||
-				getTurn().equalsTurn("DRAW");
+		return getTurn().equals(Turn.WHITEWIN) ||
+				getTurn().equals(Turn.BLACKWIN) ||
+				getTurn().equals(Turn.DRAW);
 	}
 
+	/**
+	 * @return The heuristics value related to this state
+	 */
 	@Override //TODO implement the actual euristicsFunction
 	public int heuristicsFunction() {
-		return 0;
+		/*
+		 * This heuristics function initializes the values for white pawns, then it converts some values
+		 * by multiplying them by -1 if incoherent with black pawns behaviour
+		 */
+
+		//Positive heuristics initialization
+		int kingEscaped = 400;
+		int kingCouldEscape = 40;
+		int pawnsEaten = 2 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+
+		//Negative heuristics initialization
+		int kingEaten = -400;
+		int kingEatablePosition =  -400;
+		int eatablePosition =  -20;
+		int blackBlockingEscape = 0;
+		int pawnsLost = -3 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
+		int nearObstacle = -3;
+
+		//Check for terminal states and exit (convert value if needed)
+		//Check if the king has reached an escape
+		if(this.getTurn().equals(Turn.WHITEWIN))
+			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEscaped: -kingEscaped);
+		//Check if the king has been eaten
+		else if (this.getTurn().equals(Turn.BLACKWIN))
+			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEaten: -kingEaten);
+
+		int totalHeuristicsValue = 0;
+
+		for(int row = 0; row < this.getBoard().length; row++){
+			for(int column = 0; column < this.getBoard().length; column++){
+				//Find the king
+				if (board[row][column].equals(Pawn.KING)){
+					//Check if the king is in an escapable position and return th heuristic value accordingly
+					int escapableHeuristicsValue = getKingCouldEscapeHeuristic(kingCouldEscape, row, column);
+					totalHeuristicsValue += (GameAshtonTablut.player.equals(Turn.WHITE) ?
+							escapableHeuristicsValue : -escapableHeuristicsValue);
+
+					//Check if the king is in an eatable position and return the heuristic value accordingly
+					int eatableKingHeuristicsValue = getKingEatableHeuristic(kingEatablePosition, row, column);
+					totalHeuristicsValue += (GameAshtonTablut.player.equals(Turn.WHITE) ?
+							eatableKingHeuristicsValue : -eatableKingHeuristicsValue);
+				}
+			}
+		}
+
+		return totalHeuristicsValue;
 	}
+
+	private int getKingEatableHeuristic(int kingEatablePosition, int row, int column) {
+		int i;
+		int heuristicsValue = 0;
+
+		//Check special king eating cases
+
+		//Check if the king has a black pawn close to the right
+
+		//Check if the king has a black pawn close to the left
+
+		//Check if the king has a black pawn close to the top
+
+		//Check if the king has a black pawn close to the bottom
+		return heuristicsValue;
+	}
+
+	private int getKingCouldEscapeHeuristic(int kingCouldEscape, int row, int column) {
+		int i;
+		int heuristicsValue = 0;
+		//Check if the escape is on the top and the road towards it is clear
+		if(board[0][column].equals(Pawn.ESCAPE)) {
+			for (i = row - 1; i >= 0; i--) {
+				if (!board[i][column].equals(Pawn.EMPTY))
+					break;
+			}
+			heuristicsValue += (i == 0 ? kingCouldEscape : 0);
+		}
+		//Check if the escape is on the bottom and the road towards it is clear
+		if(board[8][column].equals(Pawn.ESCAPE)) {
+			for (i = row + 1; i < board.length; i++) {
+				if (!board[i][column].equals(Pawn.EMPTY))
+					break;
+			}
+			heuristicsValue += (i == 8 ? kingCouldEscape : 0);
+		}
+		//Check if the escape is on the left and the road towards it is clear
+		if(board[row][0].equals(Pawn.ESCAPE)) {
+			for (i = column - 1; i >= 0; i--) {
+				if (!board[row][i].equals(Pawn.EMPTY))
+					break;
+			}
+			heuristicsValue += (i == 0 ? kingCouldEscape : 0);
+		}
+		//Check if the escape is on the right and the road towards it is clear
+		if(board[row][8].equals(Pawn.ESCAPE)) {
+			for (i = column + 1; i < board.length; i++) {
+				if (!board[row][i].equals(Pawn.EMPTY))
+					break;
+			}
+			heuristicsValue += (i == 8 ? kingCouldEscape : 0);
+		}
+		return heuristicsValue;
+	}
+
+	/**
+	 * @return true if the king is in the castle, false otherwise
+	 */
+	private boolean isKingInCastle() {	return this.getPawn(4,4).equals(Pawn.KING); }
 
 	/**
 	 * @return The list of actions available for the current state.

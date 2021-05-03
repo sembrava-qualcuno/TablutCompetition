@@ -36,6 +36,7 @@ public class GameAshtonTablut implements Game {
 	 * Counter for the moves without capturing that have occurred
 	 */
 	private int movesWithutCapturing;
+	public static State.Turn player;
 	private String gameLogName;
 	private File gameLog;
 	private FileHandler fh;
@@ -52,6 +53,7 @@ public class GameAshtonTablut implements Game {
 	public GameAshtonTablut(State state, int repeated_moves_allowed, int cache_size, String logs_folder,
 			String whiteName, String blackName) {
 		super();
+		this.player = state.getTurn();
 		this.repeated_moves_allowed = repeated_moves_allowed;
 		this.cache_size = cache_size;
 		this.movesWithutCapturing = 0;
