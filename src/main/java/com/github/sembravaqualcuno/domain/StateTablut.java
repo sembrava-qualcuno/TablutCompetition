@@ -156,65 +156,412 @@ public class StateTablut extends State implements Serializable {
 	 * by multiplying them by -1 if incoherent with black pawns behaviour
 	 * @return The heuristics value related to this state
 	 */
-	@Override //TODO implement the actual euristicsFunction
+	@Override //TODO implement the actual heuristicsFunction
 	public int heuristicsFunction() {
 		//Positive heuristics initialization
-		int kingEscaped = 400;
-		int kingCouldEscape = 40;
-		int pawnsEaten = 2 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+		int kingEscapedValue = 400;
+		int kingCouldEscapeValue = 40;
+		int pawnsEatenValue = 2 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
 
 		//Negative heuristics initialization
-		int kingEaten = -400;
-		int kingEatablePosition =  -400;
-		int eatablePosition =  -20;
-		int blackBlockingEscape = 0;
-		int pawnsLost = -3 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
-		int nearObstacle = -3;
+		int kingEatenValue = -400;
+		int kingEatablePositionValue =  -400;
+		int eatablePositionValue =  -20;
+		int pawnsLostValue = -3 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
+		int nearObstacleValue = -3;
 
 		//Check for terminal states and exit (convert value if needed)
 		//Check if the king has reached an escape
 		if(this.getTurn().equals(Turn.WHITEWIN))
-			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEscaped: -kingEscaped);
+			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEscapedValue: -kingEscapedValue);
 		//Check if the king has been eaten
 		else if (this.getTurn().equals(Turn.BLACKWIN))
-			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEaten: -kingEaten);
+			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEatenValue: -kingEatenValue);
 
-		int totalHeuristicsValue = 0;
+		int swappableHeuristicsValue = pawnsEatenValue - pawnsLostValue;
+		int fixedHeuristicsValue = 0;
 
 		for(int row = 0; row < this.getBoard().length; row++){
 			for(int column = 0; column < this.getBoard().length; column++){
 				//Find the king
 				if (board[row][column].equals(Pawn.KING)){
 					//Check if the king is in an escapable position and return th heuristic value accordingly
-					int escapableHeuristicsValue = getKingCouldEscapeHeuristic(kingCouldEscape, row, column);
-					totalHeuristicsValue += (GameAshtonTablut.player.equals(Turn.WHITE) ?
-							escapableHeuristicsValue : -escapableHeuristicsValue);
+					swappableHeuristicsValue += getKingCouldEscapeHeuristic(kingCouldEscapeValue, row, column);
 
 					//Check if the king is in an eatable position and return the heuristic value accordingly
-					int eatableKingHeuristicsValue = getKingEatableHeuristic(kingEatablePosition, row, column);
-					totalHeuristicsValue += (GameAshtonTablut.player.equals(Turn.WHITE) ?
-							eatableKingHeuristicsValue : -eatableKingHeuristicsValue);
+					swappableHeuristicsValue += getKingEatableHeuristic(kingEatablePositionValue, row, column);
+
+					//Check if the king is in the castle's row or column as there's no point for this heuristics in these cases
+					if(row != 4 || column != 4){
+						swappableHeuristicsValue += getBlackBlockingKingHeuristic(row, column);
+					}
 				}
+				fixedHeuristicsValue -= getEatableOrObstacleHeuristic(board[row][column].equals(Pawn.KING), kingEatablePositionValue,
+						eatablePositionValue, nearObstacleValue, row, column);
 			}
 		}
 
-		return totalHeuristicsValue;
+		return fixedHeuristicsValue + (GameAshtonTablut.player.equals(Turn.WHITE) ?
+				swappableHeuristicsValue : -swappableHeuristicsValue);
 	}
 
-	private int getKingEatableHeuristic(int kingEatablePosition, int row, int column) {
-		int i;
+	/*
+	 * This function checks for every occurrence of a pawn to be eaten and if a pawn is near an obstacle
+	 * It discriminates between the king's case and any other pawn's case
+	 */
+	private int getEatableOrObstacleHeuristic(boolean isKing, int kingEatablePositionValue, int eatablePositionValue,
+											  int nearObstacleValue, int row, int column) {
 		int heuristicsValue = 0;
 
-		//Check special king eating cases
+		//Treat the fortress as an obstacle if the pawn is not the king
+		if (!isKing) {
+			//Check if the pawn is on the left side of the fortress
+			if (row == 4 && column == 3) {
+				heuristicsValue += nearObstacleValue +
+						isEatableFromLeft(eatablePositionValue, row, column);
+			}
+			//Check if the pawn is on the right side of the fortress
+			else if (row == 4 && column == 5) {
+				heuristicsValue += nearObstacleValue +
+						isEatableFromRight(eatablePositionValue, row, column);
 
-		//Check if the king has a black pawn close to the right
+			}
+			//Check if the pawn is on the top side of the fortress
+			else if (row == 3 && column == 4) {
+				heuristicsValue += nearObstacleValue +
+					isEatableFromTop(eatablePositionValue, row, column);
+			}
+			//Check if the pawn is on the bottom side of the fortress
+			else if (row == 5 && column == 4) {
+				heuristicsValue += nearObstacleValue +
+				isEatableFromBottom(eatablePositionValue, row, column);
+			}
+		}//Pawn is not the king
 
-		//Check if the king has a black pawn close to the left
+		//Check if the pawn is near a camp
+		if (board[row + 1][column].equals(Pawn.CAMP))
+			heuristicsValue += nearObstacleValue;
+		if (board[row - 1][column].equals(Pawn.CAMP))
+			heuristicsValue += nearObstacleValue;
+		if (board[row][column + 1].equals(Pawn.CAMP))
+			heuristicsValue += nearObstacleValue;
+		if (board[row][column - 1].equals(Pawn.CAMP))
+			heuristicsValue += nearObstacleValue;
 
-		//Check if the king has a black pawn close to the top
+		//Check if there is an enemy/obstacle on the right
+		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column + 1].equals(Pawn.BLACK) ||
+				GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column + 1].equals(Pawn.WHITE) ||
+				board[row][column + 1].equals(Pawn.CAMP)) {
+			heuristicsValue += isEatableFromLeft(isKing ? kingEatablePositionValue : eatablePositionValue,
+					row, column);
+		}
 
-		//Check if the king has a black pawn close to the bottom
+		//Check if there is an enemy/obstacle on the left
+		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column - 1].equals(Pawn.BLACK) ||
+				GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column - 1].equals(Pawn.WHITE) ||
+				board[row][column - 1].equals(Pawn.CAMP)) {
+			heuristicsValue += isEatableFromRight(isKing ? kingEatablePositionValue : eatablePositionValue,
+					row, column);
+		}
+
+		//Check if there is an enemy/obstacle on the bottom
+		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row + 1][column].equals(Pawn.BLACK) ||
+				GameAshtonTablut.player.equals(Turn.BLACK) && board[row + 1][column].equals(Pawn.WHITE) ||
+				board[row + 1][column].equals(Pawn.CAMP)) {
+			heuristicsValue += isEatableFromTop(isKing ? kingEatablePositionValue : eatablePositionValue,
+					row, column);
+		}
+
+		//Check if there is an enemy/obstacle on the top
+		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row - 1][column].equals(Pawn.BLACK) ||
+				GameAshtonTablut.player.equals(Turn.BLACK) && board[row - 1][column].equals(Pawn.WHITE) ||
+				board[row - 1][column].equals(Pawn.CAMP)) {
+			heuristicsValue += isEatableFromBottom(isKing ? kingEatablePositionValue : eatablePositionValue,
+					row, column);
+		}
+
 		return heuristicsValue;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the left of the current pawn
+	 * or if some enemy can reach the left of the current pawn from the top or the bottom
+	 */
+	private int isEatableFromLeft(int eatablePositionValue, int row, int column){
+		int heuristicsValue = 0;
+		//Check if the first position to my left is empty as it will be pointless to go on checking otherwise
+		if (board[row][column - 1].equals(Pawn.EMPTY)) {
+			//Check if there is an enemy that has a clear path on the left of the pawn
+			if (isClearToEatLeft(row, column - 2))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my left from the top
+			if (isClearToEatTop(row - 1, column - 1))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my left from the bottom
+			if (isClearToEatBottom(row + 1, column - 1))
+				heuristicsValue += eatablePositionValue;
+		}
+		return heuristicsValue;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the right of the current pawn
+	 * or if some enemy can reach the right of the current pawn from the top or the bottom
+	 */
+	private int isEatableFromRight(int eatablePositionValue, int row, int column){
+		int heuristicsValue = 0;
+		//Check if the first position to my right is empty as it will be pointless to go on checking otherwise
+		if (board[row][column + 1].equals(Pawn.EMPTY)) {
+			//Check if there is an enemy that has a clear path on the right of the pawn
+			if (isClearToEatRight(row, column + 2))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my right from the top
+			if (isClearToEatTop(row - 1, column + 1))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my right from the bottom
+			if (isClearToEatBottom(row + 1, column + 1))
+				heuristicsValue += eatablePositionValue;
+		}
+		return heuristicsValue;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the top of the current pawn
+	 * or if some enemy can reach the top of the current pawn from the left or the right
+	 */
+	private int isEatableFromTop(int eatablePositionValue, int row, int column){
+		int heuristicsValue = 0;
+		//Check if the first position to my top side is empty as it will be pointless to go on checking otherwise
+		if (board[row - 1][column].equals(Pawn.EMPTY)) {
+			//Check if there is an enemy that has a clear path on the top of the pawn
+			if(isClearToEatTop(row - 2, column))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my top side from the left
+			if (isClearToEatLeft(row - 1, column - 1))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my top side from the right
+			if(isClearToEatRight(row - 1, column + 1))
+				heuristicsValue += eatablePositionValue;
+		}
+		return heuristicsValue;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the bottom of the current pawn
+	 * or if some enemy can reach the bottom of the current pawn from the left or the right
+	 */
+	private int isEatableFromBottom(int eatablePositionValue, int row, int column){
+		int heuristicsValue = 0;
+		//Check if the first position to my bottom side is empty as it will be pointless to go on checking otherwise
+		if (board[row + 1][column].equals(Pawn.EMPTY)) {
+			//Check if there is an enemy that has a clear path on the bottom of the pawn
+			if(isClearToEatBottom(row + 2, column))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my bottom side from the left
+			if(isClearToEatLeft(row + 1, column - 1))
+				heuristicsValue += eatablePositionValue;
+
+			//Check if there are other pawns that could get to my bottom side from the right
+			if(isClearToEatRight(row + 1, column + 1))
+				heuristicsValue += eatablePositionValue;
+		}
+		return heuristicsValue;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the left of the current pawn
+	 * This is possible if he's on the left of the pawn and neither an ally nor an obstacle is present
+	 * between the current pawn and the enemy
+	 */
+	private boolean isClearToEatLeft(int row, int column){
+		for (int i = column; i >= 0; i--) {
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
+					board[row][i].equals(Pawn.THRONE))
+				return false;
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the right of the current pawn
+	 * This is possible if he's on the right of the pawn and neither an ally nor an obstacle is present
+	 * between the current pawn and the enemy
+	 */
+	private boolean isClearToEatRight(int row, int column) {
+		for (int i = column; i < board[row].length; i++) {
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
+					board[row][i].equals(Pawn.THRONE))
+				return false;
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the top of the current pawn
+	 * This is possible if he's on the top of the pawn and neither an ally nor an obstacle is present
+	 * between the current pawn and the enemy
+	 */
+	private boolean isClearToEatTop(int row, int column) {
+		for (int i = row; i >= 0; i--) {
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
+					board[row][i].equals(Pawn.THRONE))
+				return false;
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
+				return true;
+			}
+		}
+	return false;
+	}
+
+	/*
+	 * This function checks if some enemy is clear to eat from the bottom of the current pawn
+	 * This is possible if he's on the bottom of the pawn and neither an ally nor an obstacle is present
+	 * between the current pawn and the enemy
+	 */
+	private boolean isClearToEatBottom(int row, int column) {
+		for (int i = row; i < board.length; i++) {
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
+					board[row][i].equals(Pawn.THRONE))
+				return false;
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
+				return true;
+			}
+		}
+	return false;
+	}
+
+	/*
+	 * This function checks for the special positions for the king to be eaten
+	 * If the king is in the castle, checks if the king is surrounded
+	 * If the king is near the castle, checks if he's surrounded on the remaining sides
+	 * If neither of the conditions are met, returns 0
+	 */
+	private int getKingEatableHeuristic(int kingEatablePositionValue, int row, int column) {
+		//Check if the king is in the castle
+		if(isKingInCastle()){
+			//Check if there are three enemies to the left, top and right of the castle
+			if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
+				return isEatableFromBottom(kingEatablePositionValue, row, column);
+
+			//Check if there are three enemies to the top, right and bottom of the castle
+			else if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
+				return isEatableFromLeft(kingEatablePositionValue, row, column);
+
+			//Check if there are three enemies to the right, bottom and left of the castle
+			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
+				return isEatableFromTop(kingEatablePositionValue, row, column);
+
+			//Check if there are three enemies to the bottom, left and top of the castle
+			else if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
+				return isEatableFromRight(kingEatablePositionValue, row, column);
+		}//King in castle
+
+		//Check if the king is on the left of the castle
+		else if(row == 4 && column == 3){
+			//Check if there are two enemies on the left and on the top
+			if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
+			return isEatableFromBottom(kingEatablePositionValue, row, column);
+
+			//Check if there are two enemies on the bottom and on the left
+			else if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
+				return isEatableFromTop(kingEatablePositionValue, row, column);
+
+			//Check if there are two enemies on the top and on the bottom
+			else if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
+				return isEatableFromLeft(kingEatablePositionValue, row, column);
+		}//King left of the castle
+
+		//Check if the king is on top of the castle
+		else if(row == 3 && column == 4){
+			//Check if there are two enemies on the left and on the top
+			if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
+				return isEatableFromRight(kingEatablePositionValue, row, column);
+
+			//Check if there are two enemies on the top and on the right
+			else if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
+				return isEatableFromLeft(kingEatablePositionValue, row, column);
+
+			//Check if there are two enemies on the right and on the left
+			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
+				return isEatableFromTop(kingEatablePositionValue, row, column);
+		}//King in top of the castle
+
+		//Check if the king is on the right of the castle
+		else if(row == 4 && column == 5){
+			//Check if there are two enemies on the top and on the right
+			if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
+				return isEatableFromBottom(kingEatablePositionValue, row, column);
+
+			//Check if there are two enemies on the right and on the bottom
+			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
+				return isEatableFromTop(kingEatablePositionValue, row, column);
+
+			//Check if there are two enemies on the bottom and on the top
+			else if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
+				return isEatableFromRight(kingEatablePositionValue, row, column);
+		}//King right of the castle
+
+		//Check if the king is at the bottom of the castle
+		else if(row == 5 && column == 4){
+			//Check if there are two enemies on the bottom and on the left
+			if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
+				return isEatableFromRight(kingEatablePositionValue, row, column);
+
+			//Check if there are two enemies on the right and on the bottom
+			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
+				return isEatableFromLeft(kingEatablePositionValue, row, column);
+			//Check if there are two enemies on the left and on the right
+			else if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
+					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
+				return isEatableFromBottom(kingEatablePositionValue, row, column);
+		}//King bottom of the castle
+
+		return 0;
+	}
+
+	//TODO implement the getBlackBlockingKingHeuristic
+	private int getBlackBlockingKingHeuristic(int row, int column) {
+		return 0;
 	}
 
 	private int getKingCouldEscapeHeuristic(int kingCouldEscape, int row, int column) {
