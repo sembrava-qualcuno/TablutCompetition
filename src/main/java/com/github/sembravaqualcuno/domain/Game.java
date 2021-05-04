@@ -31,14 +31,14 @@ public interface Game {
 	 *             try to climb over another pawn
 	 * @throws ThroneException
 	 *             try to move a pawn into the throne boxe
-	 * @throws OccupitedException
+	 * @throws OccupiedException
 	 *             try to move a pawn into an ccupited box
 	 * @throws ClimbingCitadelException
 	 * @throws CitadelException
 	 */
 	public State checkMove(State state, Action a)
 			throws BoardException, ActionException, StopException, PawnException, DiagonalException, ClimbingException,
-			ThroneException, OccupitedException, ClimbingCitadelException, CitadelException, BoardException, ActionException, StopException, PawnException, DiagonalException;
+			ThroneException, OccupiedException, ClimbingCitadelException, CitadelException, BoardException, ActionException, StopException, PawnException, DiagonalException;
 
 	public void endGame(State state);
 }

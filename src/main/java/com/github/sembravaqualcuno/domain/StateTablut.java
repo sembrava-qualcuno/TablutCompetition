@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * This class represents a state of a match of Tablut (classical or second
  * version)
@@ -14,7 +13,6 @@ import java.util.List;
  * 
  */
 public class StateTablut extends State implements Serializable {
-
 	private static final long serialVersionUID = 1L;
 	private static final int initialPawnsBlack = 16;
 	private static final int initialPawnsWhite = 9;
@@ -113,7 +111,6 @@ public class StateTablut extends State implements Serializable {
 		result.setTurn(this.turn);
 		return result;
 	}
-
 
 	@Override
 	public boolean equals(Object obj) {

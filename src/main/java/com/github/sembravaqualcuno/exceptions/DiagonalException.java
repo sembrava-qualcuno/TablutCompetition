@@ -8,12 +8,9 @@ import com.github.sembravaqualcuno.domain.Action;
  *
  */
 public class DiagonalException extends Exception {
-
 	private static final long serialVersionUID = 1L;
 	
-	public DiagonalException(Action a)
-	{
-		super("Diagonal move is not allowed: "+a.toString());
+	public DiagonalException(Action a) {
+		super("Diagonal move is not allowed: " + a);
 	}
-
 }

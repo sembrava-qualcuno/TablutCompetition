@@ -1,9 +1,7 @@
-/**
- * 
- */
 package com.github.sembravaqualcuno.logreader;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,23 +14,17 @@ import com.github.sembravaqualcuno.domain.State.Turn;
  */
 public class LogReader {
 
-	private static BufferedReader br;
-
-	/**
-	 * @param args
-	 * @throws IOException
-	 */
 	public static void main(String[] args) throws IOException {
 
-		Map<String, Integer> wins = new HashMap<String, Integer>();
-		Map<String, Integer> draws = new HashMap<String, Integer>();
-		Map<String, Integer> losses = new HashMap<String, Integer>();
-		Map<String, Integer> winmoves = new HashMap<String, Integer>();
-		Map<String, Integer> lossmoves = new HashMap<String, Integer>();
-		Map<String, Integer> captures = new HashMap<String, Integer>();
-		Map<String, Integer> captured = new HashMap<String, Integer>();
-		Map<String, Integer> games = new HashMap<String, Integer>();
-		Map<String, Integer> moves = new HashMap<String, Integer>();
+		Map<String, Integer> wins = new HashMap<>();
+		Map<String, Integer> draws = new HashMap<>();
+		Map<String, Integer> losses = new HashMap<>();
+		Map<String, Integer> winmoves = new HashMap<>();
+		Map<String, Integer> lossmoves = new HashMap<>();
+		Map<String, Integer> captures = new HashMap<>();
+		Map<String, Integer> captured = new HashMap<>();
+		Map<String, Integer> games = new HashMap<>();
+		Map<String, Integer> moves = new HashMap<>();
 
 		File game_out_file = new File("games.txt");
 		if (!game_out_file.exists()) {
@@ -54,14 +46,14 @@ public class LogReader {
 						+ "\n\n");
 
 		try (Stream<Path> path_stream = Files.list(Paths.get("logs").toAbsolutePath())) {
-			List<String> path_list = path_stream.filter(Files::isRegularFile).map(x -> x.toString())
+			List<String> path_list = path_stream.filter(Files::isRegularFile).map(Path::toString)
 					.collect(Collectors.toList());
 
 			for (String file_path : path_list) {
 				if (file_path.contains("_vs_")) {
 					File file = new File(file_path);
 
-					br = new BufferedReader(new FileReader(file));
+					BufferedReader br = new BufferedReader(new FileReader(file));
 
 					String whiteP = "whiteP";
 					String blackP = "blackP";
@@ -75,7 +67,7 @@ public class LogReader {
 					String line;
 					while ((line = br.readLine()) != null) {
 
-						line = new String(line.getBytes(), "UTF-8");
+						line = new String(line.getBytes(), StandardCharsets.UTF_8);
 
 						if (line.contains("Players")) {
 							System.out.println(line);

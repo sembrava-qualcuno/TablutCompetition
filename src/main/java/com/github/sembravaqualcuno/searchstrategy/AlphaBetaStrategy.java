@@ -33,7 +33,7 @@ public class AlphaBetaStrategy implements SearchStrategy{
     }
 
     @Override
-    public Action choseMove(State state) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupitedException, BoardException, ClimbingCitadelException, ThroneException {
+    public Action choseMove(State state) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupiedException, BoardException, ClimbingCitadelException, ThroneException {
         Action result = null;
         int resultValue = -10000; //NEGATIVE INFINITY
 
@@ -49,7 +49,7 @@ public class AlphaBetaStrategy implements SearchStrategy{
     }
 
     //TODO Si può evitare di invertire l'euristica grazie al booleano maximizingPlayer
-    private int alphabeta(State state, int depth, int alfa, int beta, boolean maximizingPlayer) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupitedException, BoardException, ClimbingCitadelException, ThroneException {
+    private int alphabeta(State state, int depth, int alfa, int beta, boolean maximizingPlayer) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupiedException, BoardException, ClimbingCitadelException, ThroneException {
         if(depth == 0 || state.isTerminal())
             return state.heuristicsFunction();
         int value;

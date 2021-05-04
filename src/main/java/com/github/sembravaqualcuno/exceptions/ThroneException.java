@@ -8,12 +8,9 @@ import com.github.sembravaqualcuno.domain.Action;
  *
  */
 public class ThroneException extends Exception {
-
 	private static final long serialVersionUID = 1L;
 	
-	public ThroneException(Action a)
-	{
-		super("Player "+a.getTurn().toString()+" is tryng to go into the castle: "+a.toString());
-	}	
-
+	public ThroneException(Action a) {
+		super("Player " + a.getTurn() + " is trying to go into the castle: " + a);
+	}
 }

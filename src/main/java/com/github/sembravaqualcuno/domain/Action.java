@@ -5,13 +5,12 @@ import java.io.Serializable;
 import java.security.InvalidParameterException;
 
 /**
- * this class represents an action of a player
+ * This class represents an action of a player
  * 
  * @author A.Piretti
  * 
  */
 public class Action implements Serializable {
-
 	private static final long serialVersionUID = 1L;
 
 	private String from;
@@ -88,5 +87,4 @@ public class Action implements Serializable {
 	public static String getStringFromIndex(int row, int column) {
 		return Character.toLowerCase(column + 97) + String.valueOf(row);
 	}
-
 }

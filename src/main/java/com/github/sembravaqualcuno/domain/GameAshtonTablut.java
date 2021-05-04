@@ -14,10 +14,8 @@ import java.util.logging.SimpleFormatter;
 import com.github.sembravaqualcuno.exceptions.*;
 
 /**
- * 
  * Game engine inspired by the Ashton Rules of Tablut
- * 
- * 
+ *
  * @author A. Piretti, Andrea Galassi
  *
  */
@@ -32,6 +30,7 @@ public class GameAshtonTablut implements Game {
 	 * Number of states kept in memory. negative value means infinite.
 	 */
 	private int cache_size;
+
 	/**
 	 * Counter for the moves without capturing that have occurred
 	 */
@@ -112,7 +111,7 @@ public class GameAshtonTablut implements Game {
 	@Override
 	public State checkMove(State state, Action a)
 			throws BoardException, ActionException, StopException, PawnException, DiagonalException, ClimbingException,
-			ThroneException, OccupitedException, ClimbingCitadelException, CitadelException {
+			ThroneException, OccupiedException, ClimbingCitadelException, CitadelException {
 		this.loggGame.fine(a.toString());
 		// controllo la mossa
 		if (a.getTo().length() != 2 || a.getFrom().length() != 2) {
@@ -141,7 +140,7 @@ public class GameAshtonTablut implements Game {
 		// controllo la casella di arrivo
 		if (!state.getPawn(rowTo, columnTo).equalsPawn(State.Pawn.EMPTY.toString())) {
 			this.loggGame.warning("Mossa sopra una casella occupata");
-			throw new OccupitedException(a);
+			throw new OccupiedException(a);
 		}
 		if (this.citadels.contains(state.getBox(rowTo, columnTo))
 				&& !this.citadels.contains(state.getBox(rowFrom, columnFrom))) {
@@ -744,12 +743,9 @@ public class GameAshtonTablut implements Game {
 	public void clearDrawConditions() {
 		drawConditions.clear();
 	}
-	
 
 	@Override
 	public void endGame(State state) {
 		this.loggGame.fine("Stato:\n"+state.toString());
 	}
-
-
 }

@@ -39,7 +39,6 @@ public abstract class State {
 	}
 
 	/**
-	 * 
 	 * Pawn represents the content of a box in the board
 	 * 
 	 * @author A.Piretti
@@ -60,7 +59,6 @@ public abstract class State {
 		public String toString() {
 			return pawn;
 		}
-
 	}
 
 	protected Pawn board[][];

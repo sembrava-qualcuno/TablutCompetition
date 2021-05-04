@@ -8,12 +8,9 @@ import com.github.sembravaqualcuno.domain.Action;
  *
  */
 public class ActionException extends Exception {
-
 	private static final long serialVersionUID = 1L;
 	
-	public ActionException(Action a)
-	{
-		super("The format of the action is not correct: "+a.toString());
+	public ActionException(Action a) {
+		super("The format of the action is not correct: "+ a);
 	}
-
 }

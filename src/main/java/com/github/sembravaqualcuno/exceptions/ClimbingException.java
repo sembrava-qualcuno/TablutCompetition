@@ -8,12 +8,9 @@ import com.github.sembravaqualcuno.domain.Action;
  *
  */
 public class ClimbingException extends Exception {
-
 	private static final long serialVersionUID = 1L;
 	
-	public ClimbingException(Action a)
-	{
-		super("A pawn is tryng to climb over another pawn: "+a.toString());
+	public ClimbingException(Action a) {
+		super("A pawn is trying to climb over another pawn: " + a);
 	}
-
 }

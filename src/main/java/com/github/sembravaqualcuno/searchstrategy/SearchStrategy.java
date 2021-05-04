@@ -26,10 +26,10 @@ public interface SearchStrategy {
      * @throws ActionException
      * @throws CitadelException
      * @throws StopException
-     * @throws OccupitedException
+     * @throws OccupiedException
      * @throws BoardException
      * @throws ClimbingCitadelException
      * @throws ThroneException
      */
-    public Action choseMove(State state) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupitedException, BoardException, ClimbingCitadelException, ThroneException;
+    public Action choseMove(State state) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupiedException, BoardException, ClimbingCitadelException, ThroneException;
 }

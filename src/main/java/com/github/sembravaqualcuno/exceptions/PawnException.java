@@ -8,12 +8,9 @@ import com.github.sembravaqualcuno.domain.Action;
  *
  */
 public class PawnException extends Exception {
-
 	private static final long serialVersionUID = 1L;
 	
-	public PawnException(Action a)
-	{
-		super("The player is tryng to move a wrong pawn: "+a.toString());
+	public PawnException(Action a) {
+		super("The player is trying to move a wrong pawn: "+ a);
 	}
-
 }
