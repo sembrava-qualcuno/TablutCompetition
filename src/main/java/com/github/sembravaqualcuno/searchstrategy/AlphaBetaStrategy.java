@@ -48,7 +48,6 @@ public class AlphaBetaStrategy implements SearchStrategy{
         return result;
     }
 
-    //TODO Si può evitare di invertire l'euristica grazie al booleano maximizingPlayer
     private int alphabeta(State state, int depth, int alfa, int beta, boolean maximizingPlayer) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupiedException, BoardException, ClimbingCitadelException, ThroneException {
         if(depth == 0 || state.isTerminal())
             return state.heuristicsFunction();
