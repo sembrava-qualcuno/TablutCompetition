@@ -1,4 +1,4 @@
-package com.github.sembravaqualcuno;
+package com.github.sembravaqualcuno.client;
 
 import com.github.sembravaqualcuno.client.SembravaQualcuno;
 import com.github.sembravaqualcuno.client.TablutClient;
@@ -48,9 +48,9 @@ public class TablutRandomClient extends TablutClient {
 
 		System.out.println("Connecting to the server...");
 
-		SembravaQualcuno client = null;
+		TablutRandomClient client = null;
 		try {
-			client = new SembravaQualcuno(role, CLIENT_NAME, timeout, ipAddress);
+			client = new TablutRandomClient(role, CLIENT_NAME, timeout, ipAddress);
 		} catch (InvalidParameterException e) {
 			System.out.println(e.getMessage());
 			System.exit(1);

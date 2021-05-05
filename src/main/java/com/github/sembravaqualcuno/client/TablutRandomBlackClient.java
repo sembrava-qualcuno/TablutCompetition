@@ -1,4 +1,4 @@
-package com.github.sembravaqualcuno;
+package com.github.sembravaqualcuno.client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;

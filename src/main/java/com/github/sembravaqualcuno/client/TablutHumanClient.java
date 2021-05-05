@@ -1,6 +1,5 @@
-package com.github.sembravaqualcuno;
+package com.github.sembravaqualcuno.client;
 
-import com.github.sembravaqualcuno.client.TablutClient;
 import com.github.sembravaqualcuno.domain.Action;
 import com.github.sembravaqualcuno.domain.State;
 import com.github.sembravaqualcuno.domain.StateTablut;

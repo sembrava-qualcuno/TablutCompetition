@@ -1,12 +1,12 @@
-package com.github.sembravaqualcuno;
+package com.github.sembravaqualcuno.client;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
 
-public class TablutHumanBlackClient {
+public class TablutHumanWhiteClient {
 
     public static void main(String[] args) throws UnknownHostException, ClassNotFoundException, IOException {
-        String[] array = new String[]{"BLACK"};
+        String[] array = new String[]{"WHITE"};
         TablutHumanClient.main(array);
     }
 }
