@@ -4,3 +4,7 @@
 
 # Maven
 target/
+
+# Log files
+logs/
+garbage/
