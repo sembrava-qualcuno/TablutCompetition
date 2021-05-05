@@ -16,9 +16,8 @@ public interface SearchStrategy {
     /**
      * This method chose the best action from a initial state
      *
-     * @param state
-     *          the initial state
-     * @return  the chosen action
+     * @param state the initial state
+     * @return the chosen action
      * @throws IOException
      * @throws PawnException
      * @throws DiagonalException

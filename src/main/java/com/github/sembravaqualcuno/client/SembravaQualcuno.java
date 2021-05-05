@@ -13,6 +13,8 @@ public class SembravaQualcuno extends TablutClient {
     public static final String CLIENT_NAME = "sembrava_qualcuno";
     public static final int MAX_DEPTH = 4;
     public static final long MAX_TIME = 100000000;
+    public static final int WHITE_PORT = 5800;
+    public static final int BLACK_PORT = 5801;
 
     private SearchStrategy searchStrategy;
 
@@ -25,8 +27,7 @@ public class SembravaQualcuno extends TablutClient {
 
     public static void main(String[] args) {
         if (args.length != 3) {
-            //TODO Usage
-            System.out.println("Usage");
+            System.out.println("Usage: sembrava_qualcuno <role> <timeout> <ipAddress>");
             System.exit(1);
         }
 

@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 import com.github.sembravaqualcuno.domain.Action;
 import com.github.sembravaqualcuno.domain.State;
 import com.github.sembravaqualcuno.domain.StateTablut;
-import com.github.sembravaqualcuno.util.Configuration;
 import com.github.sembravaqualcuno.util.StreamUtils;
 
 /**
@@ -67,10 +66,10 @@ public abstract class TablutClient implements Runnable {
 
         if (player.equalsIgnoreCase("white")) {
             this.player = State.Turn.WHITE;
-            port = Configuration.whitePort;
+            port = SembravaQualcuno.WHITE_PORT;
         } else if (player.equalsIgnoreCase("black")) {
             this.player = State.Turn.BLACK;
-            port = Configuration.blackPort;
+            port = SembravaQualcuno.BLACK_PORT;
         } else {
             throw new InvalidParameterException("Player role must be BLACK or WHITE");
         }

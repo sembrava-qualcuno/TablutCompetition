@@ -12,5 +12,4 @@ public class TablutRandomBlackClient {
 		}
 		TablutRandomClient.main(array);
 	}
-
 }

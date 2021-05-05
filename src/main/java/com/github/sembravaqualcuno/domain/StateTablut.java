@@ -8,9 +8,8 @@ import java.util.List;
 /**
  * This class represents a state of a match of Tablut (classical or second
  * version)
- * 
+ *
  * @author A.Piretti
- * 
  */
 public class StateTablut extends State implements Serializable {
 	private static final long serialVersionUID = 1L;
