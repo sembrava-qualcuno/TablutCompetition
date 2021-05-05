@@ -34,7 +34,7 @@ public class AlphaBetaStrategy implements SearchStrategy {
         int resultValue = -10000; //NEGATIVE INFINITY
 
         for (Action action : state.getActions()) {
-            int value = alphabeta(game.checkMove(state, action), maxDepth - 1, -10000, 10000, true);
+            int value = alphabeta(game.checkMove(state, action), maxDepth - 1, -10000, 10000, false);
             if (value > resultValue) {
                 result = action;
                 resultValue = value;
@@ -51,7 +51,7 @@ public class AlphaBetaStrategy implements SearchStrategy {
         if (maximizingPlayer) {
             value = -10000; //NEGATIVE INFINITY
             for (Action action : state.getActions()) {
-                value = Math.max(value, alphabeta(game.checkMove(state, action), depth - 1, alfa, beta, false));
+                value = Math.max(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, false));
                 alfa = Math.max(alfa, value);
                 if (alfa >= beta)
                     break;
@@ -59,7 +59,7 @@ public class AlphaBetaStrategy implements SearchStrategy {
         } else {
             value = 10000; //POSITIVE INFINITY
             for (Action action : state.getActions()) {
-                value = Math.min(value, alphabeta(game.checkMove(state, action), depth - 1, alfa, beta, true));
+                value = Math.min(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, true));
                 beta = Math.min(beta, value);
                 if (beta <= alfa)
                     break;

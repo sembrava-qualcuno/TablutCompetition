@@ -85,6 +85,6 @@ public class Action implements Serializable {
     }
 
     public static String getStringFromIndex(int row, int column) {
-        return Character.toLowerCase(column + 97) + String.valueOf(row);
+        return (char) (column + 97) + String.valueOf(row + 1);
     }
 }
