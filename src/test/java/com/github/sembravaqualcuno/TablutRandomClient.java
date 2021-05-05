@@ -1,129 +1,127 @@
 package com.github.sembravaqualcuno;
 
+import com.github.sembravaqualcuno.client.SembravaQualcuno;
 import com.github.sembravaqualcuno.client.TablutClient;
 import com.github.sembravaqualcuno.domain.*;
 import com.github.sembravaqualcuno.domain.State.Turn;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 /**
- * 
  * @author A. Piretti, Andrea Galassi
- *
  */
 public class TablutRandomClient extends TablutClient {
+	public static final String CLIENT_NAME = "random-player";
 
-	private int game;
-
-	public TablutRandomClient(String player, String name, int gameChosen, int timeout, String ipAddress) throws UnknownHostException, IOException {
-		super(player, name, timeout, ipAddress);
-		game = gameChosen;
-	}
-	
 	public TablutRandomClient(String player, String name, int timeout, String ipAddress) throws UnknownHostException, IOException {
-		this(player, name, 4, timeout, ipAddress);
-	}
-	
-	public TablutRandomClient(String player, int timeout, String ipAddress) throws UnknownHostException, IOException {
-		this(player, "random", 4, timeout, ipAddress);
-	}
+        super(player, name, timeout, ipAddress);
+    }
 
-	public TablutRandomClient(String player) throws UnknownHostException, IOException {
-		this(player, "random", 4, 60, "localhost");
-	}
+    public TablutRandomClient(String player, int timeout, String ipAddress) throws UnknownHostException, IOException {
+        this(player, "random", timeout, ipAddress);
+    }
 
+    public TablutRandomClient(String player) throws UnknownHostException, IOException {
+        this(player, "random", 60, "localhost");
+    }
 
-	public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
-		int gametype = 4;
-		String role = "";
-		String name = "random";
-		String ipAddress = "localhost";
-		int timeout = 60;
-		// TODO: change the behavior?
-		if (args.length < 1) {
-			System.out.println("You must specify which player you are (WHITE or BLACK)");
-			System.exit(-1);
-		} else {
-			System.out.println(args[0]);
-			role = (args[0]);
+    public static void main(String[] args) throws UnknownHostException, IOException, ClassNotFoundException {
+  		if (args.length != 3) {
+			System.out.println("Usage: randomClient <role> <timeout> <ipAddress>");
+			System.exit(1);
 		}
-		if (args.length == 2) {
-			System.out.println(args[1]);
-			timeout = Integer.parseInt(args[1]);
-		}
-		if (args.length == 3) {
-			ipAddress = args[2];
-		}
-		System.out.println("Selected client: " + args[0]);
 
-		TablutRandomClient client = new TablutRandomClient(role, name, gametype, timeout, ipAddress);
-		client.run();
-	}
-
-	@Override
-	public void run() {
-
+		String role = args[0];
+		int timeout = 0;
 		try {
-			this.declareName();
-		} catch (Exception e) {
+			timeout = Integer.parseInt(args[1]);
+		} catch (NumberFormatException e) {
+			System.out.println("The timeout has to be an integer");
+			System.exit(1);
+		}
+		String ipAddress = args[2];
+
+		System.out.println("Connecting to the server...");
+
+		SembravaQualcuno client = null;
+		try {
+			client = new SembravaQualcuno(role, CLIENT_NAME, timeout, ipAddress);
+		} catch (InvalidParameterException e) {
+			System.out.println(e.getMessage());
+			System.exit(1);
+		} catch (UnknownHostException e) {
+			System.out.println("Unknown host: " + ipAddress);
+			System.exit(1);
+		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(1);
 		}
+		client.run();
+    }
 
-		State state;
+    @Override
+    public void run() {
 
-		Game rules = null;
-		switch (this.game) {
-		case 1:
-			state = new StateTablut();
-			rules = new GameTablut();
-			break;
-		case 2:
-			state = new StateTablut();
-			rules = new GameModernTablut();
-			break;
-		case 3:
-			state = new StateBrandub();
-			rules = new GameTablut();
-			break;
-		case 4:
-			state = new StateTablut();
-			state.setTurn(State.Turn.WHITE);
-			rules = new GameAshtonTablut(99, 0, "garbage", "fake", "fake");
-			System.out.println("Ashton Tablut game");
-			break;
-		default:
-			System.out.println("Error in game selection");
-			System.exit(4);
-		}
+        try {
+            this.declareName();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-		List<int[]> pawns = new ArrayList<int[]>();
-		List<int[]> empty = new ArrayList<int[]>();
+		State state = new StateTablut();
+		state.setTurn(State.Turn.WHITE);
+		Game rules = new GameAshtonTablut(this.getPlayer(), 99, 0, "garbage", "fake", "fake");
 
-		System.out.println("You are player " + this.getPlayer().toString() + "!");
+		System.out.println("Ashton Tablut game");
 
-		while (true) {
-			try {
-				this.read();
-			} catch (ClassNotFoundException | IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				System.exit(1);
-			}
-			System.out.println("Current state:");
+        List<int[]> pawns = new ArrayList<>();
+        List<int[]> empty = new ArrayList<>();
+
+        System.out.println("You are player " + this.getPlayer() + "!");
+
+        while (true) {
+            try {
+                this.read();
+            } catch (ClassNotFoundException | IOException e1) {
+                e1.printStackTrace();
+                System.exit(1);
+            }
+
 			state = this.getCurrentState();
-			System.out.println(state.toString());
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
 
-			if (this.getPlayer().equals(Turn.WHITE)) {
-				// Mio turno
-				if (this.getCurrentState().getTurn().equals(StateTablut.Turn.WHITE)) {
+            System.out.println("Current state:");
+            System.out.println(state);
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+            }
+
+			// I won
+			if (this.getPlayer().equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.WHITEWIN) ||
+					this.getPlayer().equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.BLACKWIN)) {
+				System.out.println("YOU WIN!");
+				System.exit(0);
+			}
+			// I lose
+			else if (this.getPlayer().equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.BLACKWIN) ||
+					this.getPlayer().equals(State.Turn.BLACK) && state.getTurn().equals(State.Turn.WHITEWIN)) {
+				System.out.println("YOU LOSE!");
+				System.exit(0);
+			}
+			// Draw
+			else if (state.getTurn().equals(StateTablut.Turn.DRAW)) {
+				System.out.println("DRAW!");
+				System.exit(0);
+			}
+			// My turn
+			else if (this.getPlayer().equals(this.getCurrentState().getTurn())) {
+				if(this.getPlayer().equals(Turn.WHITE)) {
 					int[] buf;
 					for (int i = 0; i < state.getBoard().length; i++) {
 						for (int j = 0; j < state.getBoard().length; j++) {
@@ -149,7 +147,6 @@ public class TablutRandomClient extends TablutClient {
 					try {
 						a = new Action("z0", "z0", State.Turn.WHITE);
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 					while (!found) {
@@ -166,55 +163,21 @@ public class TablutRandomClient extends TablutClient {
 
 						try {
 							a = new Action(from, to, State.Turn.WHITE);
-						} catch (IOException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-
-						try {
 							rules.checkMove(state, a);
 							found = true;
 						} catch (Exception e) {
-
+							e.printStackTrace();
 						}
-
 					}
 
 					System.out.println("Mossa scelta: " + a.toString());
 					try {
 						this.write(a);
 					} catch (ClassNotFoundException | IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					pawns.clear();
-					empty.clear();
-
 				}
-				// Turno dell'avversario
-				else if (state.getTurn().equals(StateTablut.Turn.BLACK)) {
-					System.out.println("Waiting for your opponent move... ");
-				}
-				// ho vinto
-				else if (state.getTurn().equals(StateTablut.Turn.WHITEWIN)) {
-					System.out.println("YOU WIN!");
-					System.exit(0);
-				}
-				// ho perso
-				else if (state.getTurn().equals(StateTablut.Turn.BLACKWIN)) {
-					System.out.println("YOU LOSE!");
-					System.exit(0);
-				}
-				// pareggio
-				else if (state.getTurn().equals(StateTablut.Turn.DRAW)) {
-					System.out.println("DRAW!");
-					System.exit(0);
-				}
-
-			} else {
-
-				// Mio turno
-				if (this.getCurrentState().getTurn().equals(StateTablut.Turn.BLACK)) {
+				else {
 					int[] buf;
 					for (int i = 0; i < state.getBoard().length; i++) {
 						for (int j = 0; j < state.getBoard().length; j++) {
@@ -239,10 +202,9 @@ public class TablutRandomClient extends TablutClient {
 					try {
 						a = new Action("z0", "z0", State.Turn.BLACK);
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-					;
+
 					while (!found) {
 						selected = pawns.get(new Random().nextInt(pawns.size() - 1));
 						String from = this.getCurrentState().getBox(selected[0], selected[1]);
@@ -253,47 +215,32 @@ public class TablutRandomClient extends TablutClient {
 						try {
 							a = new Action(from, to, State.Turn.BLACK);
 						} catch (IOException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 
-						System.out.println("try: " + a.toString());
+						System.out.println("try: " + a);
 						try {
 							rules.checkMove(state, a);
 							found = true;
 						} catch (Exception e) {
-
+							e.printStackTrace();
 						}
-
 					}
 
 					System.out.println("Mossa scelta: " + a.toString());
 					try {
 						this.write(a);
 					} catch (ClassNotFoundException | IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					pawns.clear();
-					empty.clear();
-
 				}
-
-				else if (state.getTurn().equals(StateTablut.Turn.WHITE)) {
-					System.out.println("Waiting for your opponent move... ");
-				} else if (state.getTurn().equals(StateTablut.Turn.WHITEWIN)) {
-					System.out.println("YOU LOSE!");
-					System.exit(0);
-				} else if (state.getTurn().equals(StateTablut.Turn.BLACKWIN)) {
-					System.out.println("YOU WIN!");
-					System.exit(0);
-				} else if (state.getTurn().equals(StateTablut.Turn.DRAW)) {
-					System.out.println("DRAW!");
-					System.exit(0);
-				}
-
+				pawns.clear();
+				empty.clear();
 			}
-		}
-
-	}
+			// Adversary turn
+			else {
+				System.out.println("Waiting for your opponent move... ");
+			}
+        }
+    }
 }
