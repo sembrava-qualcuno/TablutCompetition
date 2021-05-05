@@ -156,7 +156,6 @@ public class StateTablut extends State implements Serializable {
 	 * by multiplying them by -1 if incoherent with black pawns behaviour
 	 * @return The heuristics value related to this state
 	 */
-	@Override //TODO implement the actual heuristicsFunction
 	public int heuristicsFunction() {
 		//Positive heuristics initialization
 		int kingEscapedValue = 400;
@@ -239,45 +238,47 @@ public class StateTablut extends State implements Serializable {
 		}//Pawn is not the king
 
 		//Check if the pawn is near a camp
-		if (board[row + 1][column].equals(Pawn.CAMP))
-			heuristicsValue += nearObstacleValue;
-		if (board[row - 1][column].equals(Pawn.CAMP))
-			heuristicsValue += nearObstacleValue;
-		if (board[row][column + 1].equals(Pawn.CAMP))
-			heuristicsValue += nearObstacleValue;
-		if (board[row][column - 1].equals(Pawn.CAMP))
-			heuristicsValue += nearObstacleValue;
+		if(!(row == 0 || row == 8 || column == 0 || column == 8)) {
+			if (board[row + 1][column].equals(Pawn.CAMP))
+				heuristicsValue += nearObstacleValue;
+			if (board[row - 1][column].equals(Pawn.CAMP))
+				heuristicsValue += nearObstacleValue;
+			if (board[row][column + 1].equals(Pawn.CAMP))
+				heuristicsValue += nearObstacleValue;
+			if (board[row][column - 1].equals(Pawn.CAMP))
+				heuristicsValue += nearObstacleValue;
 
-		//Check if there is an enemy/obstacle on the right
-		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column + 1].equals(Pawn.BLACK) ||
-				GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column + 1].equals(Pawn.WHITE) ||
-				board[row][column + 1].equals(Pawn.CAMP)) {
-			heuristicsValue += isEatableFromLeft(isKing ? kingEatablePositionValue : eatablePositionValue,
-					row, column);
-		}
+			//Check if there is an enemy/obstacle on the right
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column + 1].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column + 1].equals(Pawn.WHITE) ||
+					board[row][column + 1].equals(Pawn.CAMP)) {
+				heuristicsValue += isEatableFromLeft(isKing ? kingEatablePositionValue : eatablePositionValue,
+						row, column);
+			}
 
-		//Check if there is an enemy/obstacle on the left
-		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column - 1].equals(Pawn.BLACK) ||
-				GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column - 1].equals(Pawn.WHITE) ||
-				board[row][column - 1].equals(Pawn.CAMP)) {
-			heuristicsValue += isEatableFromRight(isKing ? kingEatablePositionValue : eatablePositionValue,
-					row, column);
-		}
+			//Check if there is an enemy/obstacle on the left
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column - 1].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column - 1].equals(Pawn.WHITE) ||
+					board[row][column - 1].equals(Pawn.CAMP)) {
+				heuristicsValue += isEatableFromRight(isKing ? kingEatablePositionValue : eatablePositionValue,
+						row, column);
+			}
 
-		//Check if there is an enemy/obstacle on the bottom
-		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row + 1][column].equals(Pawn.BLACK) ||
-				GameAshtonTablut.player.equals(Turn.BLACK) && board[row + 1][column].equals(Pawn.WHITE) ||
-				board[row + 1][column].equals(Pawn.CAMP)) {
-			heuristicsValue += isEatableFromTop(isKing ? kingEatablePositionValue : eatablePositionValue,
-					row, column);
-		}
+			//Check if there is an enemy/obstacle on the bottom
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row + 1][column].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row + 1][column].equals(Pawn.WHITE) ||
+					board[row + 1][column].equals(Pawn.CAMP)) {
+				heuristicsValue += isEatableFromTop(isKing ? kingEatablePositionValue : eatablePositionValue,
+						row, column);
+			}
 
-		//Check if there is an enemy/obstacle on the top
-		if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row - 1][column].equals(Pawn.BLACK) ||
-				GameAshtonTablut.player.equals(Turn.BLACK) && board[row - 1][column].equals(Pawn.WHITE) ||
-				board[row - 1][column].equals(Pawn.CAMP)) {
-			heuristicsValue += isEatableFromBottom(isKing ? kingEatablePositionValue : eatablePositionValue,
-					row, column);
+			//Check if there is an enemy/obstacle on the top
+			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row - 1][column].equals(Pawn.BLACK) ||
+					GameAshtonTablut.player.equals(Turn.BLACK) && board[row - 1][column].equals(Pawn.WHITE) ||
+					board[row - 1][column].equals(Pawn.CAMP)) {
+				heuristicsValue += isEatableFromBottom(isKing ? kingEatablePositionValue : eatablePositionValue,
+						row, column);
+			}
 		}
 
 		return heuristicsValue;
@@ -559,9 +560,76 @@ public class StateTablut extends State implements Serializable {
 		return 0;
 	}
 
-	//TODO implement the getBlackBlockingKingHeuristic
 	private int getBlackBlockingKingHeuristic(int row, int column) {
-		return 0;
+		int nBlacks = 0;
+		int kingPosValue = 0;
+		int blackBlockingValue = -4;
+
+		//Check if the king is in the central cross, as there is no point to check for this heuristic in this case
+		if(row == 4 || column == 4)
+			return 0;
+
+		kingPosValue = -1;
+		//Check if the king is in the upper right square of the board
+		if(row < 4 && column > 4){
+			//Check if the king is closer to the escapes and worsen the heuristic
+			if(row == 2 || column == 6)
+				kingPosValue = -2;
+
+			//Check how many blacks are near the upper right escapes
+			if(this.getBoard()[1][6].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[1][7].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[2][7].equals(Pawn.BLACK))
+				nBlacks++;
+		}//King is in the upper right square
+
+		//Check if the king is in the lower right square of the board
+		else if(row > 4 && column > 4){
+			//Check if the king is closer to the escapes and worsen the heuristic
+			if(row == 6 || column == 6)
+				kingPosValue = -2;
+
+			//Check how many blacks are near the lower right escapes
+			if(this.getBoard()[6][7].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[7][7].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[7][6].equals(Pawn.BLACK))
+				nBlacks++;
+		}//King is in the lower right square
+
+		//Check if the king is in the lower left square of the board
+		else if(row > 4 && column < 4){
+			//Check if the king is closer to the escapes and worsen the heuristic
+			if(row == 6 || column == 2)
+				kingPosValue = -2;
+
+			//Check how many blacks are near the lower left escapes
+			if(this.getBoard()[6][1].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[7][1].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[7][2].equals(Pawn.BLACK))
+				nBlacks++;
+		}//King is in the lower left square
+
+		//Check if the king is in the upper left square of the board
+		else{
+			if(row == 2 || column == 2)
+				kingPosValue = -2;
+
+			//Check how many blacks are near the upper left escapes
+			if(this.getBoard()[1][1].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[1][2].equals(Pawn.BLACK))
+				nBlacks++;
+			if(this.getBoard()[2][1].equals(Pawn.BLACK))
+				nBlacks++;
+		}//King is in the upper left
+
+		return nBlacks*blackBlockingValue + kingPosValue;
 	}
 
 	private int getKingCouldEscapeHeuristic(int kingCouldEscape, int row, int column) {
