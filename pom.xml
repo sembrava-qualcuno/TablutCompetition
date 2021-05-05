@@ -6,11 +6,15 @@
 
     <groupId>com.github.sembrava-qualcuno</groupId>
     <artifactId>TablutCompetition</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <sembravaQualcunoClient.filename>sembrava_qualcuno</sembravaQualcunoClient.filename>
+        <randomClient.filename>random_player</randomClient.filename>
+        <humanClient.filename>human_player</humanClient.filename>
     </properties>
 
     <dependencies>
@@ -20,6 +24,89 @@
             <artifactId>gson</artifactId>
             <version>2.2.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.3.0</version>
+            <type>maven-plugin</type>
+        </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!-- Override maven-jar-plugin to remove default jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Create jars with dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-sembravaQualcuno</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.github.sembravaqualcuno.client.SembravaQualcuno</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>jar-with-dependencies</descriptorRefs>
+                            <finalName>${sembravaQualcunoClient.filename}-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-randomClient</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                    <mainClass>com.github.sembravaqualcuno.client.TablutRandomClient</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>jar-with-dependencies</descriptorRefs>
+                            <finalName>${randomClient.filename}-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-humanClient</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.github.sembravaqualcuno.client.TablutHumanClient</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>jar-with-dependencies</descriptorRefs>
+                            <finalName>${humanClient.filename}-${project.version}</finalName>
+                            <appendAssemblyId>false</appendAssemblyId>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
