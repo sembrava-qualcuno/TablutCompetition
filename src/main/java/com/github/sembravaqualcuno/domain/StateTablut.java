@@ -15,17 +15,6 @@ public class StateTablut extends State implements Serializable {
 	private  final long serialVersionUID = 1L;
 	private  final int initialPawnsBlack = 16;
 	private  final int initialPawnsWhite = 9;
-	private  final int kingEscapedValue = 400;
-	private  final int kingCouldEscapeValue = 40;
-	private  final int pawnsEatenValue = 2 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
-
-	//Negative heuristics initialization
-	private  final int kingEatenValue = -400;
-	private  final int kingEatablePositionValue =  -400;
-	private  final int eatablePositionValue =  -20;
-	private  final int pawnsLostValue = -3 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
-	private  final int nearObstacleValue = -3;
-	private  final int blackBlockingValue = -4;
 
 	public StateTablut() {
 		super();
@@ -135,6 +124,20 @@ public class StateTablut extends State implements Serializable {
 	 * @return The heuristics value related to this state
 	 */
 	public int heuristicsFunction() {
+		//Positive heuristics initialization
+		final int kingEscapedValue = 4000;
+		final int kingCouldEscapeValue = 40;
+		final int pawnsEatenValue = 10 + 20 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+
+		//Negative heuristics initialization
+		final int kingEatenValue = -4000;
+		final int kingEatablePositionValue =  -100;
+		final int eatablePositionValue =  -20;
+		final int pawnsLostValue = -20 + 30 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
+		final int nearObstacleValue = -3;
+		final int blackBlockingValue = -4;
+		final int drawValue = -30;
+
 		//Check for terminal states and exit (convert value if needed)
 		//Check if the king has reached an escape
 		if(this.getTurn().equals(Turn.WHITEWIN))
@@ -142,6 +145,8 @@ public class StateTablut extends State implements Serializable {
 		//Check if the king has been eaten
 		else if (this.getTurn().equals(Turn.BLACKWIN))
 			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEatenValue: -kingEatenValue);
+		else if(this.getTurn().equals(Turn.DRAW))
+			return drawValue;
 
 		int swappableHeuristicsValue = pawnsEatenValue + pawnsLostValue;
 		int fixedHeuristicsValue = 0;

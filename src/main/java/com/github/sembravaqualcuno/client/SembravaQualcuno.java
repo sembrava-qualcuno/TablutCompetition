@@ -21,7 +21,7 @@ public class SembravaQualcuno extends TablutClient {
     public SembravaQualcuno(String player, String name, int timeout, String ipAddress) throws IOException {
         super(player, name, timeout, ipAddress);
 
-        Game rules = new GameAshtonTablut(this.getPlayer(), 99, 0, "garbage", "fake", "fake");
+        Game rules = new GameAshtonTablut(this.getPlayer(), 2, 2, "garbage", "fake", "fake");
         searchStrategy = new AlphaBetaStrategy(rules, MAX_DEPTH, MAX_TIME);
     }
 
