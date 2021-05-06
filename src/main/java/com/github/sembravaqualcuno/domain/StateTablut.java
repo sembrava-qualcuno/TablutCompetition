@@ -3,7 +3,6 @@ package com.github.sembravaqualcuno.domain;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -13,9 +12,20 @@ import java.util.List;
  * @author A.Piretti
  */
 public class StateTablut extends State implements Serializable {
-	private static final long serialVersionUID = 1L;
-	private static final int initialPawnsBlack = 16;
-	private static final int initialPawnsWhite = 9;
+	private  final long serialVersionUID = 1L;
+	private  final int initialPawnsBlack = 16;
+	private  final int initialPawnsWhite = 9;
+	private  final int kingEscapedValue = 400;
+	private  final int kingCouldEscapeValue = 40;
+	private  final int pawnsEatenValue = 2 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+
+	//Negative heuristics initialization
+	private  final int kingEatenValue = -400;
+	private  final int kingEatablePositionValue =  -400;
+	private  final int eatablePositionValue =  -20;
+	private  final int pawnsLostValue = -3 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
+	private  final int nearObstacleValue = -3;
+	private  final int blackBlockingValue = -4;
 
 	public StateTablut() {
 		super();
@@ -125,18 +135,6 @@ public class StateTablut extends State implements Serializable {
 	 * @return The heuristics value related to this state
 	 */
 	public int heuristicsFunction() {
-		//Positive heuristics initialization
-		int kingEscapedValue = 400;
-		int kingCouldEscapeValue = 40;
-		int pawnsEatenValue = 2 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
-
-		//Negative heuristics initialization
-		int kingEatenValue = -400;
-		int kingEatablePositionValue =  -400;
-		int eatablePositionValue =  -20;
-		int pawnsLostValue = -3 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
-		int nearObstacleValue = -3;
-
 		//Check for terminal states and exit (convert value if needed)
 		//Check if the king has reached an escape
 		if(this.getTurn().equals(Turn.WHITEWIN))
@@ -160,7 +158,7 @@ public class StateTablut extends State implements Serializable {
 
 					//Check if the king is in the castle's row or column as there's no point for this heuristics in these cases
 					if(row != 4 || column != 4){
-						swappableHeuristicsValue += getBlackBlockingKingHeuristic(row, column);
+						swappableHeuristicsValue += getBlackBlockingKingHeuristic(row, column, blackBlockingValue);
 					}
 				}
 				fixedHeuristicsValue += getEatableOrObstacleHeuristic(board[row][column].equals(Pawn.KING), kingEatablePositionValue,
@@ -217,32 +215,32 @@ public class StateTablut extends State implements Serializable {
 				heuristicsValue += nearObstacleValue;
 
 			//Check if there is an enemy/obstacle on the right
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column + 1].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column + 1].equals(Pawn.WHITE) ||
+			if (this.getTurn().equals(Turn.WHITE) && board[row][column + 1].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[row][column + 1].equals(Pawn.WHITE) ||
 					board[row][column + 1].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromLeft(isKing ? kingEatablePositionValue : eatablePositionValue,
 						row, column);
 			}
 
 			//Check if there is an enemy/obstacle on the left
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][column - 1].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][column - 1].equals(Pawn.WHITE) ||
+			if (this.getTurn().equals(Turn.WHITE) && board[row][column - 1].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[row][column - 1].equals(Pawn.WHITE) ||
 					board[row][column - 1].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromRight(isKing ? kingEatablePositionValue : eatablePositionValue,
 						row, column);
 			}
 
 			//Check if there is an enemy/obstacle on the bottom
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row + 1][column].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row + 1][column].equals(Pawn.WHITE) ||
+			if (this.getTurn().equals(Turn.WHITE) && board[row + 1][column].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[row + 1][column].equals(Pawn.WHITE) ||
 					board[row + 1][column].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromTop(isKing ? kingEatablePositionValue : eatablePositionValue,
 						row, column);
 			}
 
 			//Check if there is an enemy/obstacle on the top
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row - 1][column].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row - 1][column].equals(Pawn.WHITE) ||
+			if (this.getTurn().equals(Turn.WHITE) && board[row - 1][column].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[row - 1][column].equals(Pawn.WHITE) ||
 					board[row - 1][column].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromBottom(isKing ? kingEatablePositionValue : eatablePositionValue,
 						row, column);
@@ -351,12 +349,12 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean isClearToEatLeft(int row, int column){
 		for (int i = column; i >= 0; i--) {
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
-					board[row][i].equals(Pawn.THRONE))
+			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
+					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
+					board[row][i].equals(Pawn.THRONE) || board[row][i].equals(Pawn.CAMP))
 				return false;
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
+			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -370,12 +368,12 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean isClearToEatRight(int row, int column) {
 		for (int i = column; i < board[row].length; i++) {
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
-					board[row][i].equals(Pawn.THRONE))
+			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
+					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
+					board[row][i].equals(Pawn.THRONE) || board[row][i].equals(Pawn.CAMP))
 				return false;
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
+			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -389,12 +387,12 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean isClearToEatTop(int row, int column) {
 		for (int i = row; i >= 0; i--) {
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
-					board[row][i].equals(Pawn.THRONE))
+			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
+					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
+					board[i][column].equals(Pawn.THRONE) || board[i][column].equals(Pawn.CAMP))
 				return false;
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
+			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -408,12 +406,12 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean isClearToEatBottom(int row, int column) {
 		for (int i = row; i < board.length; i++) {
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
-					board[row][i].equals(Pawn.THRONE))
+			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
+					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
+					board[i][column].equals(Pawn.THRONE) || board[i][column].equals(Pawn.CAMP))
 				return false;
-			if (GameAshtonTablut.player.equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
-					GameAshtonTablut.player.equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
+			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
+					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -528,10 +526,9 @@ public class StateTablut extends State implements Serializable {
 		return 0;
 	}
 
-	private int getBlackBlockingKingHeuristic(int row, int column) {
+	private int getBlackBlockingKingHeuristic(int row, int column, int blackBlockingValue) {
 		int nBlacks = 0;
 		int kingPosValue = 0;
-		int blackBlockingValue = -4;
 
 		//Check if the king is in the upper right square of the board
 		if(row < 4 && column > 4){
