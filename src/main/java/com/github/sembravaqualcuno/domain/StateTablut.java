@@ -3,6 +3,7 @@ package com.github.sembravaqualcuno.domain;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -20,9 +21,12 @@ public class StateTablut extends State implements Serializable {
 		super();
 		this.board = new Pawn[9][9];
 
-		for (int i = 0; i < 9; i++) {
-			for (int j = 0; j < 9; j++) {
-				this.board[i][j] = Pawn.EMPTY;
+		for (int row = 0; row < board.length; row++) {
+			for (int column = 0; column < board[row].length; column++) {
+				if(isEscape(row, column))
+					this.board[row][column] = Pawn.ESCAPE;
+				else
+					this.board[row][column] = Pawn.EMPTY;
 			}
 		}
 
@@ -31,40 +35,6 @@ public class StateTablut extends State implements Serializable {
 		this.turn = Turn.BLACK;
 
 		this.board[4][4] = Pawn.KING;
-
-		this.board[0][1] = Pawn.ESCAPE;
-		this.board[0][2] = Pawn.ESCAPE;
-		this.board[0][6] = Pawn.ESCAPE;
-		this.board[0][7] = Pawn.ESCAPE;
-		this.board[1][0] = Pawn.ESCAPE;
-		this.board[2][0] = Pawn.ESCAPE;
-		this.board[6][0] = Pawn.ESCAPE;
-		this.board[7][0] = Pawn.ESCAPE;
-		this.board[8][1] = Pawn.ESCAPE;
-		this.board[8][2] = Pawn.ESCAPE;
-		this.board[8][6] = Pawn.ESCAPE;
-		this.board[8][7] = Pawn.ESCAPE;
-		this.board[1][8] = Pawn.ESCAPE;
-		this.board[2][8] = Pawn.ESCAPE;
-		this.board[6][8] = Pawn.ESCAPE;
-		this.board[7][8] = Pawn.ESCAPE;
-
-		this.board[0][3] = Pawn.CAMP;
-		this.board[0][4] = Pawn.CAMP;
-		this.board[0][5] = Pawn.CAMP;
-		this.board[3][0] = Pawn.CAMP;
-		this.board[4][0] = Pawn.CAMP;
-		this.board[5][0] = Pawn.CAMP;
-		this.board[8][3] = Pawn.CAMP;
-		this.board[8][4] = Pawn.CAMP;
-		this.board[8][5] = Pawn.CAMP;
-		this.board[3][8] = Pawn.CAMP;
-		this.board[4][8] = Pawn.CAMP;
-		this.board[5][8] = Pawn.CAMP;
-		this.board[1][4] = Pawn.CAMP;
-		this.board[4][1] = Pawn.CAMP;
-		this.board[7][4] = Pawn.CAMP;
-		this.board[4][7] = Pawn.CAMP;
 
 		this.board[2][4] = Pawn.WHITE;
 		this.board[3][4] = Pawn.WHITE;
@@ -91,7 +61,6 @@ public class StateTablut extends State implements Serializable {
 		this.board[4][8] = Pawn.BLACK;
 		this.board[5][8] = Pawn.BLACK;
 		this.board[4][7] = Pawn.BLACK;
-
 	}
 
 	public StateTablut clone() {
@@ -176,7 +145,7 @@ public class StateTablut extends State implements Serializable {
 		else if (this.getTurn().equals(Turn.BLACKWIN))
 			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEatenValue: -kingEatenValue);
 
-		int swappableHeuristicsValue = pawnsEatenValue - pawnsLostValue;
+		int swappableHeuristicsValue = pawnsEatenValue + pawnsLostValue;
 		int fixedHeuristicsValue = 0;
 
 		for(int row = 0; row < this.getBoard().length; row++){
@@ -194,7 +163,7 @@ public class StateTablut extends State implements Serializable {
 						swappableHeuristicsValue += getBlackBlockingKingHeuristic(row, column);
 					}
 				}
-				fixedHeuristicsValue -= getEatableOrObstacleHeuristic(board[row][column].equals(Pawn.KING), kingEatablePositionValue,
+				fixedHeuristicsValue += getEatableOrObstacleHeuristic(board[row][column].equals(Pawn.KING), kingEatablePositionValue,
 						eatablePositionValue, nearObstacleValue, row, column);
 			}
 		}
@@ -564,17 +533,8 @@ public class StateTablut extends State implements Serializable {
 		int kingPosValue = 0;
 		int blackBlockingValue = -4;
 
-		//Check if the king is in the central cross, as there is no point to check for this heuristic in this case
-		if(row == 4 || column == 4)
-			return 0;
-
-		kingPosValue = -1;
 		//Check if the king is in the upper right square of the board
 		if(row < 4 && column > 4){
-			//Check if the king is closer to the escapes and worsen the heuristic
-			if(row == 2 || column == 6)
-				kingPosValue = -2;
-
 			//Check how many blacks are near the upper right escapes
 			if(this.getBoard()[1][6].equals(Pawn.BLACK))
 				nBlacks++;
@@ -582,14 +542,19 @@ public class StateTablut extends State implements Serializable {
 				nBlacks++;
 			if(this.getBoard()[2][7].equals(Pawn.BLACK))
 				nBlacks++;
+
+			//Check if black are blocking the upper right escapes
+			if(nBlacks > 0) {
+				kingPosValue = -1;
+
+				//Check if the king is closer to the escapes and worsen the heuristic
+				if(row == 2 || column == 6)
+					kingPosValue = -2;
+			}
 		}//King is in the upper right square
 
 		//Check if the king is in the lower right square of the board
 		else if(row > 4 && column > 4){
-			//Check if the king is closer to the escapes and worsen the heuristic
-			if(row == 6 || column == 6)
-				kingPosValue = -2;
-
 			//Check how many blacks are near the lower right escapes
 			if(this.getBoard()[6][7].equals(Pawn.BLACK))
 				nBlacks++;
@@ -597,14 +562,19 @@ public class StateTablut extends State implements Serializable {
 				nBlacks++;
 			if(this.getBoard()[7][6].equals(Pawn.BLACK))
 				nBlacks++;
+
+			//Check if black are blocking the lower right escapes
+			if(nBlacks > 0) {
+				kingPosValue = -1;
+
+				//Check if the king is closer to the escapes and worsen the heuristic
+				if(row == 6 || column == 6)
+					kingPosValue = -2;
+			}
 		}//King is in the lower right square
 
 		//Check if the king is in the lower left square of the board
 		else if(row > 4 && column < 4){
-			//Check if the king is closer to the escapes and worsen the heuristic
-			if(row == 6 || column == 2)
-				kingPosValue = -2;
-
 			//Check how many blacks are near the lower left escapes
 			if(this.getBoard()[6][1].equals(Pawn.BLACK))
 				nBlacks++;
@@ -612,13 +582,19 @@ public class StateTablut extends State implements Serializable {
 				nBlacks++;
 			if(this.getBoard()[7][2].equals(Pawn.BLACK))
 				nBlacks++;
+
+			//Check if black are blocking the lower left escapes
+			if(nBlacks > 0) {
+				kingPosValue = -1;
+
+				//Check if the king is closer to the escapes and worsen the heuristic
+				if(row == 6 || column == 2)
+					kingPosValue = -2;
+			}
 		}//King is in the lower left square
 
 		//Check if the king is in the upper left square of the board
 		else{
-			if(row == 2 || column == 2)
-				kingPosValue = -2;
-
 			//Check how many blacks are near the upper left escapes
 			if(this.getBoard()[1][1].equals(Pawn.BLACK))
 				nBlacks++;
@@ -626,9 +602,18 @@ public class StateTablut extends State implements Serializable {
 				nBlacks++;
 			if(this.getBoard()[2][1].equals(Pawn.BLACK))
 				nBlacks++;
+
+			//Check if black are blocking the upper left escapes
+			if(nBlacks > 0) {
+				kingPosValue = -1;
+
+				//Check if the king is closer to the escapes and worsen the heuristic
+				if(row == 2 || column == 2)
+					kingPosValue = -2;
+			}
 		}//King is in the upper left
 
-		return nBlacks*blackBlockingValue + kingPosValue;
+		return nBlacks * blackBlockingValue + kingPosValue;
 	}
 
 	private int getKingCouldEscapeHeuristic(int kingCouldEscape, int row, int column) {
@@ -681,10 +666,10 @@ public class StateTablut extends State implements Serializable {
 	public List<Action> getActions() throws IOException {
 		List<Action> result = new ArrayList<>();
 
-		for(int i = 0; i < board.length; i++) {
-			for(int j= 0; j < board.length; j++) {
-				if(board[i][j].toString().equals(turn.toString())) {
-					result.addAll(getPawnActions(i, j));
+		for(int row = 0; row < board.length; row++) {
+			for(int column = 0; column < board[row].length; column++) {
+				if(board[row][column].toString().equals(turn.toString())) {
+					result.addAll(getPawnActions(row, column));
 				}
 			}
 		}
@@ -692,26 +677,52 @@ public class StateTablut extends State implements Serializable {
 		return result;
 	}
 
+	@Override
+	public void initialize() {
+		for(int row = 0; row < board.length; row++) {
+			for(int column = 0; column < board[row].length; column++) {
+				if(board[row][column].equals(Pawn.EMPTY)) {
+					if(isEscape(row, column))
+						board[row][column] = Pawn.ESCAPE;
+					else if(isCamp(row, column))
+						board[row][column] = Pawn.CAMP;
+				}
+			}
+		}
+	}
+
+	private boolean isEscape(int row, int column) {
+		return ((row == 0 || row == 8) && column != 3 && column != 4 && column != 5) ||
+				((column == 0 || column == 8) && row != 3 && row != 4 && row != 5);
+	}
+
+	private boolean isCamp(int row, int column) {
+		return ((row == 0 || row == 8) && (column == 3 || column == 4 || column == 5)) ||
+				((column == 0 || column == 8) && (row == 3 || row == 4 || row == 5)) ||
+				(column == 4 && (row == 1 || row == 7)) ||
+				(row == 4 && (column == 1 || column == 7));
+	}
+
 	private List<Action> getPawnActions(int row, int column) throws IOException {
 		List<Action> result = new ArrayList<>();
 
 		//Check at the bottom
-		for(int i = row + 1; i < board.length && board[i][column].equals(Pawn.EMPTY); i++) {
+		for(int i = row + 1; i < board.length && (!board[i][column].equals(Pawn.WHITE) && !board[i][column].equals(Pawn.BLACK) && !board[i][column].equals(Pawn.KING)); i++) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(i, column), turn));
 		}
 
 		//Check at the top
-		for(int i = row - 1; i >= 0 && board[i][column].equals(Pawn.EMPTY); i--) {
+		for(int i = row - 1; i >= 0 && (!board[i][column].equals(Pawn.WHITE) && !board[i][column].equals(Pawn.BLACK) && !board[i][column].equals(Pawn.KING)); i--) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(i, column), turn));
 		}
 
 		//Check at the right
-		for(int j = column + 1; j < board[row].length && board[row][j].equals(Pawn.EMPTY); j++) {
+		for(int j = column + 1; j < board[row].length && (!board[row][j].equals(Pawn.WHITE) && !board[row][j].equals(Pawn.BLACK) && !board[row][j].equals(Pawn.KING)); j++) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(row, j), turn));
 		}
 
 		//Check at the left
-		for(int j = column - 1; j >= 0 && board[row][j].equals(Pawn.EMPTY); j--) {
+		for(int j = column - 1; j >= 0 && (!board[row][j].equals(Pawn.WHITE) && !board[row][j].equals(Pawn.BLACK) && !board[row][j].equals(Pawn.KING)); j--) {
 			result.add(new Action(Action.getStringFromIndex(row, column), Action.getStringFromIndex(row, j), turn));
 		}
 

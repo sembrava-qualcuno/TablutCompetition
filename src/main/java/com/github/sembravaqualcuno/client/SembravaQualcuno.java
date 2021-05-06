@@ -11,7 +11,7 @@ import java.security.InvalidParameterException;
 
 public class SembravaQualcuno extends TablutClient {
     public static final String CLIENT_NAME = "sembrava_qualcuno";
-    public static final int MAX_DEPTH = 4;
+    public static final int MAX_DEPTH = 3;
     public static final long MAX_TIME = 100000000;
     public static final int WHITE_PORT = 5800;
     public static final int BLACK_PORT = 5801;
@@ -81,7 +81,7 @@ public class SembravaQualcuno extends TablutClient {
             }
             System.out.println("Current state:");
             state = this.getCurrentState();
-            System.out.println(state);
+            //System.out.println(state);
 
             //TODO Perché?
             try {
@@ -110,35 +110,12 @@ public class SembravaQualcuno extends TablutClient {
             else if (this.getPlayer().equals(this.getCurrentState().getTurn())) {
                 Action chosenMove = null;
 
-                //TODO Decidere cosa fare in caso di una qualsiasi eccezione
                 try {
-                    chosenMove = this.searchStrategy.choseMove(this.getCurrentState());
+                    chosenMove = this.searchStrategy.choseMove(state);
                     System.out.println("Chosen move: " + chosenMove);
                     this.write(chosenMove);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (PawnException e) {
-                    e.printStackTrace();
-                } catch (DiagonalException e) {
-                    e.printStackTrace();
-                } catch (ClimbingException e) {
-                    e.printStackTrace();
-                } catch (ActionException e) {
-                    e.printStackTrace();
-                } catch (CitadelException e) {
-                    e.printStackTrace();
-                } catch (StopException e) {
-                    e.printStackTrace();
-                } catch (OccupiedException e) {
-                    e.printStackTrace();
-                } catch (BoardException e) {
-                    e.printStackTrace();
-                } catch (ClimbingCitadelException e) {
-                    e.printStackTrace();
-                } catch (ThroneException e) {
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
+                } catch (IOException | ActionException | ClassNotFoundException e) {
+                    //e.printStackTrace();
                 }
             }
             // Adversary turn

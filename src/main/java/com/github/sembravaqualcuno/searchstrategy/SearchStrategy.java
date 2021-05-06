@@ -19,16 +19,7 @@ public interface SearchStrategy {
      * @param state the initial state
      * @return the chosen action
      * @throws IOException
-     * @throws PawnException
-     * @throws DiagonalException
-     * @throws ClimbingException
      * @throws ActionException
-     * @throws CitadelException
-     * @throws StopException
-     * @throws OccupiedException
-     * @throws BoardException
-     * @throws ClimbingCitadelException
-     * @throws ThroneException
      */
-    public Action choseMove(State state) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupiedException, BoardException, ClimbingCitadelException, ThroneException;
+    public Action choseMove(State state) throws IOException, ActionException;
 }

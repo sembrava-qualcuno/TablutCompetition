@@ -4,8 +4,10 @@ import com.github.sembravaqualcuno.domain.Action;
 import com.github.sembravaqualcuno.domain.Game;
 import com.github.sembravaqualcuno.domain.State;
 import com.github.sembravaqualcuno.exceptions.*;
+import javafx.scene.paint.Stop;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * This class implements the {@see com.github.sembravaqualcuno.searchstrategy.SearchStrategy} interface with the alpha-beta algorithm
@@ -29,40 +31,56 @@ public class AlphaBetaStrategy implements SearchStrategy {
     }
 
     @Override
-    public Action choseMove(State state) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupiedException, BoardException, ClimbingCitadelException, ThroneException {
+    public Action choseMove(State state) throws IOException, ActionException {
         Action result = null;
         int resultValue = -10000; //NEGATIVE INFINITY
 
         for (Action action : state.getActions()) {
-            int value = alphabeta(game.checkMove(state, action), maxDepth - 1, -10000, 10000, false);
-            if (value > resultValue) {
-                result = action;
-                resultValue = value;
+            try {
+                int value = alphabeta(game.checkMove(state.clone(), action), maxDepth - 1, -10000, 10000, false);
+                System.out.println("Value: " + value);
+                if (value > resultValue) {
+                    result = action;
+                    resultValue = value;
+                }
+            } catch (PawnException | DiagonalException | ClimbingException | CitadelException | StopException | OccupiedException | BoardException | ThroneException | ClimbingCitadelException e) {
+                //e.printStackTrace();
             }
         }
-
+        System.out.println("Value finale: " + resultValue);
         return result;
     }
 
-    private int alphabeta(State state, int depth, int alfa, int beta, boolean maximizingPlayer) throws IOException, PawnException, DiagonalException, ClimbingException, ActionException, CitadelException, StopException, OccupiedException, BoardException, ClimbingCitadelException, ThroneException {
+    private int alphabeta(State state, int depth, int alfa, int beta, boolean maximizingPlayer) throws IOException, ActionException {
         if (depth == 0 || state.isTerminal())
             return state.heuristicsFunction();
         int value;
         if (maximizingPlayer) {
             value = -10000; //NEGATIVE INFINITY
             for (Action action : state.getActions()) {
-                value = Math.max(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, false));
-                alfa = Math.max(alfa, value);
-                if (alfa >= beta)
-                    break;
+                try {
+                    value = Math.max(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, false));
+                    System.out.println(value);
+                    alfa = Math.max(alfa, value);
+                    if (alfa >= beta)
+                        break;
+                } catch (PawnException | DiagonalException | ClimbingException | CitadelException | StopException | OccupiedException | BoardException | ThroneException | ClimbingCitadelException e) {
+                    //e.printStackTrace();
+                }
             }
         } else {
             value = 10000; //POSITIVE INFINITY
-            for (Action action : state.getActions()) {
-                value = Math.min(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, true));
-                beta = Math.min(beta, value);
-                if (beta <= alfa)
-                    break;
+            List<Action> actions = state.getActions();
+            for (Action action : actions) {
+                try {
+                    value = Math.min(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, true));
+                    System.out.println(value);
+                    beta = Math.min(beta, value);
+                    if (beta <= alfa)
+                        break;
+                } catch (PawnException | DiagonalException | ClimbingException | CitadelException | StopException | OccupiedException | BoardException | ThroneException | ClimbingCitadelException e) {
+                    //e.printStackTrace();
+                }
             }
         }
         return value;
