@@ -133,7 +133,6 @@ public abstract class State {
 
     public void setBoard(Pawn[][] board) {
         this.board = board;
-        this.initialize();
     }
 
     public Turn getTurn() {
@@ -239,5 +238,7 @@ public abstract class State {
     public abstract List<Action> getActions() throws IOException;
 
     public abstract void initialize();
+
+    public abstract void deInitialize();
 
 }

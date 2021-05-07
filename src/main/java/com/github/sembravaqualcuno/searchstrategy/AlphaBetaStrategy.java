@@ -4,7 +4,6 @@ import com.github.sembravaqualcuno.domain.Action;
 import com.github.sembravaqualcuno.domain.Game;
 import com.github.sembravaqualcuno.domain.State;
 import com.github.sembravaqualcuno.exceptions.*;
-import javafx.scene.paint.Stop;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,6 +14,9 @@ import java.util.List;
  * @author Luca Bongiovanni
  */
 public class AlphaBetaStrategy implements SearchStrategy {
+    private static final int POSITIVE_INFINITY = 100000;
+    private static final int NEGATIVE_INFINITY = -POSITIVE_INFINITY;
+
     private Game game;
     private int maxDepth;
     private long maxTime;
@@ -33,11 +35,11 @@ public class AlphaBetaStrategy implements SearchStrategy {
     @Override
     public Action choseMove(State state) throws IOException, ActionException {
         Action result = null;
-        int resultValue = -10000; //NEGATIVE INFINITY
+        int resultValue = NEGATIVE_INFINITY;
 
         for (Action action : state.getActions()) {
             try {
-                int value = alphabeta(game.checkMove(state.clone(), action), maxDepth - 1, -10000, 10000, false);
+                int value = alphabeta(game.checkMove(state.clone(), action), maxDepth - 1, NEGATIVE_INFINITY, POSITIVE_INFINITY, false);
                 System.out.println("Value: " + value);
                 if (value > resultValue) {
                     result = action;
@@ -53,10 +55,10 @@ public class AlphaBetaStrategy implements SearchStrategy {
 
     private int alphabeta(State state, int depth, int alfa, int beta, boolean maximizingPlayer) throws IOException, ActionException {
         if (depth == 0 || state.isTerminal())
-            return state.heuristicsFunction();
+            return state.heuristicsFunction() + depth;
         int value;
         if (maximizingPlayer) {
-            value = -10000; //NEGATIVE INFINITY
+            value = NEGATIVE_INFINITY;
             for (Action action : state.getActions()) {
                 try {
                     value = Math.max(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, false));
@@ -69,7 +71,7 @@ public class AlphaBetaStrategy implements SearchStrategy {
                 }
             }
         } else {
-            value = 10000; //POSITIVE INFINITY
+            value = POSITIVE_INFINITY;
             List<Action> actions = state.getActions();
             for (Action action : actions) {
                 try {

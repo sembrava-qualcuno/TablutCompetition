@@ -124,6 +124,8 @@ public class StateTablut extends State implements Serializable {
 	 * @return The heuristics value related to this state
 	 */
 	public int heuristicsFunction() {
+		initialize();
+
 		//Positive heuristics initialization
 		final int kingEscapedValue = 4000;
 		final int kingCouldEscapeValue = 40;
@@ -181,6 +183,8 @@ public class StateTablut extends State implements Serializable {
 				}
 			}
 		}
+
+		deInitialize();
 
 		return fixedHeuristicsValue + (GameAshtonTablut.player.equals(Turn.WHITE) ?
 				swappableHeuristicsValue : -swappableHeuristicsValue);
@@ -733,9 +737,21 @@ public class StateTablut extends State implements Serializable {
 	public List<Action> getActions() throws IOException {
 		List<Action> result = new ArrayList<>();
 
+		//Check king's actions first
+		if(turn.equals(Turn.WHITE))	{
+			for(int row = 0; row < board.length; row++) {
+				for (int column = 0; column < board[row].length; column++) {
+					if(board[row][column].equals(Pawn.KING)) {
+						result.addAll(getPawnActions(row, column));
+					}
+				}
+			}
+		}
+
 		for(int row = 0; row < board.length; row++) {
 			for(int column = 0; column < board[row].length; column++) {
-				if(board[row][column].toString().equals(turn.toString())) {
+				Pawn pawn = board[row][column];
+				if((turn.equals(Turn.WHITE) && pawn.equals(Pawn.WHITE)) || (turn.equals(Turn.BLACK) && pawn.equals(Pawn.BLACK))) {
 					result.addAll(getPawnActions(row, column));
 				}
 			}
@@ -754,6 +770,16 @@ public class StateTablut extends State implements Serializable {
 					else if(isCamp(row, column))
 						board[row][column] = Pawn.CAMP;
 				}
+			}
+		}
+	}
+
+	@Override
+	public void deInitialize() {
+		for(int row = 0; row < board.length; row++) {
+			for(int column = 0; column < board[row].length; column++) {
+				if(board[row][column].equals(Pawn.ESCAPE) || board[row][column].equals(Pawn.CAMP))
+					board[row][column] = Pawn.EMPTY;
 			}
 		}
 	}
