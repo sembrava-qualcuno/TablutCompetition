@@ -194,14 +194,118 @@ public class StateTablut extends State implements Serializable {
 	private int whiteStrategy(boolean isKing, int row, int column) {
 		int heuristicsValue = 0;
 
+
 		return heuristicsValue;
 	}
-
-	//TODO Implement the actual black strategy
+	
 	private int blackStrategy(int row, int column) {
-		int heuristicsValue = 0;
+		int blackStrategyValue = 0;
+		int blockKingCentralPositionValue = 80;
+		int surroundKingFortressValue = 100;
+		int nBlacksSurroundingCastle = 0;
 
-		return heuristicsValue;
+		//Defensive strategy
+
+		//Check if the king is in E3 and can escape from right or left
+		if (this.board[2][4].equals(Pawn.KING) && row == 2)
+			blackStrategyValue += blockKingCentralPositionValue;
+
+		//Check if the king is in E7 and can escape from right or left
+		else if (this.board[6][4].equals(Pawn.KING) && row == 6)
+			blackStrategyValue += blockKingCentralPositionValue;
+
+		//Check if the king is in G5 and can escape from top or bottom
+		else if (this.board[4][6].equals(Pawn.KING) && column == 6)
+			blackStrategyValue += blockKingCentralPositionValue;
+
+		//Check if the king is in C5 and can escape from top or bottom
+		else if (this.board[4][2].equals(Pawn.KING) && column == 2)
+			blackStrategyValue += blockKingCentralPositionValue;
+
+
+		//Offensive strategy
+
+		//Check if the king is in the castle and the current pawn is moving near the castle
+		// and some black pawns are near the castle and add the heuristics value accordingly
+		if(isKingInCastle() && isCurrentBlackNearCastle(row, column)){
+			if(this.board[3][4].equals(Pawn.BLACK))
+				nBlacksSurroundingCastle++;
+			if(this.board[4][5].equals(Pawn.BLACK))
+				nBlacksSurroundingCastle++;
+			if(this.board[5][4].equals(Pawn.BLACK))
+				nBlacksSurroundingCastle++;
+			if(this.board[4][3].equals(Pawn.BLACK))
+				nBlacksSurroundingCastle++;
+
+			blackStrategyValue += surroundKingFortressValue * (nBlacksSurroundingCastle > 2 ? 2 : 1);
+		}
+
+		return blackStrategyValue;
+	}
+
+	private boolean isCurrentBlackNearCastle(int row, int column) {
+		return (column == 4 && (row == 3 || row == 5)) ||
+				(row == 4 && (column == 3 || column == 5));
+	}
+
+	/*
+	 * This function checks if the king (in position row,column)
+	 * has a clear path to an escape at his left
+	 */
+	private boolean canKingEscapeLeft(int row, int column) {
+		if (board[row][0].equals(Pawn.ESCAPE)) {
+			for (int i = column - 1; i >= 0; i--) {
+				if (!board[row][i].equals(Pawn.EMPTY))
+					return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * This function checks if the king (in position row,column)
+	 * has a clear path to an escape at his right
+	 */
+	private boolean canKingEscapeRight(int row, int column){
+		if(board[row][8].equals(Pawn.ESCAPE)) {
+			for (int i = column + 1; i < board.length; i++) {
+				if (!board[row][i].equals(Pawn.EMPTY))
+					return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * This function checks if the king (in position row,column)
+	 * has a clear path to an escape to the top
+	 */
+	private boolean canKingEscapeTop(int row, int column){
+		if(board[0][column].equals(Pawn.ESCAPE)) {
+			for (int i = row - 1; i >= 0; i--) {
+				if (!board[i][column].equals(Pawn.EMPTY))
+					return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * This function checks if the king (in position row,column)
+	 * has a clear path to an escape to the bottom
+	 */
+	private boolean canKingEscapeBottom(int row, int column){
+		if(board[8][column].equals(Pawn.ESCAPE)) {
+			for (int i = row + 1; i < board.length; i++) {
+				if (!board[i][column].equals(Pawn.EMPTY))
+					return false;
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/*
@@ -691,37 +795,17 @@ public class StateTablut extends State implements Serializable {
 		int i;
 		int heuristicsValue = 0;
 		//Check if the escape is on the top and the road towards it is clear
-		if(board[0][column].equals(Pawn.ESCAPE)) {
-			for (i = row - 1; i >= 0; i--) {
-				if (!board[i][column].equals(Pawn.EMPTY))
-					break;
-			}
-			heuristicsValue += (i == 0 ? kingCouldEscape : 0);
-		}
+		heuristicsValue += (canKingEscapeTop(row, column) ? kingCouldEscape : 0);
+
 		//Check if the escape is on the bottom and the road towards it is clear
-		if(board[8][column].equals(Pawn.ESCAPE)) {
-			for (i = row + 1; i < board.length; i++) {
-				if (!board[i][column].equals(Pawn.EMPTY))
-					break;
-			}
-			heuristicsValue += (i == 8 ? kingCouldEscape : 0);
-		}
+		heuristicsValue += (canKingEscapeBottom(row, column) ? kingCouldEscape : 0);
+
 		//Check if the escape is on the left and the road towards it is clear
-		if(board[row][0].equals(Pawn.ESCAPE)) {
-			for (i = column - 1; i >= 0; i--) {
-				if (!board[row][i].equals(Pawn.EMPTY))
-					break;
-			}
-			heuristicsValue += (i == 0 ? kingCouldEscape : 0);
-		}
+		heuristicsValue += (canKingEscapeLeft(row, column) ? kingCouldEscape : 0);
+
 		//Check if the escape is on the right and the road towards it is clear
-		if(board[row][8].equals(Pawn.ESCAPE)) {
-			for (i = column + 1; i < board.length; i++) {
-				if (!board[row][i].equals(Pawn.EMPTY))
-					break;
-			}
-			heuristicsValue += (i == 8 ? kingCouldEscape : 0);
-		}
+		heuristicsValue += (canKingEscapeRight(row, column) ? kingCouldEscape : 0);
+
 		return heuristicsValue;
 	}
 
