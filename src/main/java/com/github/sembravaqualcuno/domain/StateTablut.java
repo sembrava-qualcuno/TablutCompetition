@@ -197,12 +197,13 @@ public class StateTablut extends State implements Serializable {
 
 		return heuristicsValue;
 	}
-	
+
 	private int blackStrategy(int row, int column) {
 		int blackStrategyValue = 0;
 		int blockKingCentralPositionValue = 80;
 		int surroundKingFortressValue = 100;
 		int nBlacksSurroundingCastle = 0;
+		int currentBlackBlockingEscape = 80;
 
 		//Defensive strategy
 
@@ -222,6 +223,18 @@ public class StateTablut extends State implements Serializable {
 		else if (this.board[4][2].equals(Pawn.KING) && column == 2)
 			blackStrategyValue += blockKingCentralPositionValue;
 
+		//It is always good for a black pawn to block an escape
+		if((row == 1 && column == 6) || (row == 0 && column == 6) || (row == 0 && column == 7) ||
+				(row == 1 && column == 7) || (row == 2 && column == 7) || (row == 1 && column == 8) ||
+				(row == 2 && column == 8) || (row == 6 && column == 7) || (row == 6 && column == 8) ||
+				(row == 7 && column == 6) || (row == 7 && column == 7) || (row == 7 && column == 8) ||
+				(row == 8 && column == 6) || (row == 8 && column == 7) || (row == 6 && column == 0) ||
+				(row == 6 && column == 1) || (row == 7 && column == 0) || (row == 7 && column == 1) ||
+				(row == 7 && column == 2) || (row == 8 && column == 1) || (row == 8 && column == 2) ||
+				(row == 0 && column == 1) || (row == 1 && column == 1) || (row == 0 && column == 2) ||
+				(row == 1 && column == 2) || (row == 2 && column == 1) || (row == 1 && column == 0) ||
+				(row == 2 && column == 0))
+			blackStrategyValue += currentBlackBlockingEscape;
 
 		//Offensive strategy
 
