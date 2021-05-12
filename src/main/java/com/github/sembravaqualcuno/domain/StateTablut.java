@@ -128,7 +128,7 @@ public class StateTablut extends State implements Serializable {
 
 		//Positive heuristics initialization
 		final int kingEscapedValue = 4000;
-		final int kingCouldEscapeValue = 40;
+		final int kingCouldEscapeValue = 400;
 		final int pawnsEatenValue = 10 + 20 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
 
 		//Negative heuristics initialization
@@ -200,10 +200,11 @@ public class StateTablut extends State implements Serializable {
 
 	private int blackStrategy(int row, int column) {
 		int blackStrategyValue = 0;
-		int blockKingCentralPositionValue = 80;
-		int surroundKingFortressValue = 100;
+		final int blockKingCentralPositionValue = 80;
+		final int surroundKingFortressValue = 100;
 		int nBlacksSurroundingCastle = 0;
-		int currentBlackBlockingEscape = 80;
+		final int currentBlackBlockingEscapeValue = 80;
+		final int currentBlackNearKingValue = 80;
 
 		//Defensive strategy
 
@@ -234,7 +235,7 @@ public class StateTablut extends State implements Serializable {
 				(row == 0 && column == 1) || (row == 1 && column == 1) || (row == 0 && column == 2) ||
 				(row == 1 && column == 2) || (row == 2 && column == 1) || (row == 1 && column == 0) ||
 				(row == 2 && column == 0))
-			blackStrategyValue += currentBlackBlockingEscape;
+			blackStrategyValue += currentBlackBlockingEscapeValue;
 
 		//Offensive strategy
 
@@ -252,6 +253,17 @@ public class StateTablut extends State implements Serializable {
 
 			blackStrategyValue += surroundKingFortressValue * (nBlacksSurroundingCastle > 2 ? 2 : 1);
 		}
+		else if (!isKingInCastle()){
+			for(int i = 0; i < board.length; i++){
+				for(int j = 0; j < board[i].length; j++){
+					if(board[i][j].equals(Pawn.KING) &&
+							((row == i && (column == j-1 || column == j+1)) ||
+									(column == j && (row == i-1 || row == i+1)))){
+						blackStrategyValue += currentBlackNearKingValue;
+					}
+				}
+			}
+		}
 
 		return blackStrategyValue;
 	}
@@ -267,7 +279,7 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean canKingEscapeLeft(int row, int column) {
 		if (board[row][0].equals(Pawn.ESCAPE)) {
-			for (int i = column - 1; i >= 0; i--) {
+			for (int i = column - 1; i >= 1; i--) {
 				if (!board[row][i].equals(Pawn.EMPTY))
 					return false;
 			}
@@ -282,7 +294,7 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean canKingEscapeRight(int row, int column){
 		if(board[row][8].equals(Pawn.ESCAPE)) {
-			for (int i = column + 1; i < board.length; i++) {
+			for (int i = column + 1; i < board.length - 1; i++) {
 				if (!board[row][i].equals(Pawn.EMPTY))
 					return false;
 			}
@@ -297,7 +309,7 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean canKingEscapeTop(int row, int column){
 		if(board[0][column].equals(Pawn.ESCAPE)) {
-			for (int i = row - 1; i >= 0; i--) {
+			for (int i = row - 1; i >= 1; i--) {
 				if (!board[i][column].equals(Pawn.EMPTY))
 					return false;
 			}
@@ -312,7 +324,7 @@ public class StateTablut extends State implements Serializable {
 	 */
 	private boolean canKingEscapeBottom(int row, int column){
 		if(board[8][column].equals(Pawn.ESCAPE)) {
-			for (int i = row + 1; i < board.length; i++) {
+			for (int i = row + 1; i < board.length - 1; i++) {
 				if (!board[i][column].equals(Pawn.EMPTY))
 					return false;
 			}
