@@ -129,15 +129,15 @@ public class StateTablut extends State implements Serializable {
 		//Positive heuristics initialization
 		final int kingEscapedValue = 4000;
 		final int kingCouldEscapeValue = 400;
-		final int pawnsEatenValue = 10 + 20 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+		final int pawnsEatenValue = 100 + 20 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
 
 		//Negative heuristics initialization
 		final int kingEatenValue = -4000;
-		final int kingEatablePositionValue =  -100;
-		final int eatablePositionValue =  -20;
-		final int pawnsLostValue = -20 + 30 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
-		final int nearObstacleValue = -3;
-		final int blackBlockingValue = -4;
+		final int kingEatablePositionValue =  -400;
+		final int eatablePositionValue =  -50;
+		final int pawnsLostValue = -200 + 30 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
+		final int nearObstacleValue = -50;
+		final int blackBlockingValue = -10;
 		final int drawValue = -30;
 
 		//Check for terminal states and exit (convert value if needed)
@@ -190,12 +190,52 @@ public class StateTablut extends State implements Serializable {
 				swappableHeuristicsValue : -swappableHeuristicsValue);
 	}
 
-	//TODO Implement the actual white strategy
 	private int whiteStrategy(boolean isKing, int row, int column) {
-		int heuristicsValue = 0;
+		int whiteStrategyValue = 0;
+		final int defendKingValue = 80;
+		final int kingInCentralPositionValue = 80;
 
+		//Defensive strategy
+		//Check if the king is out of the castle and going towards an escape,
+		// if so try to create a clear path for him by blocking that portion of the map
+		if (!isKingInCastle()) {
+			for (int i = 0; i < board.length; i++)
+				for (int j = 0; j < board[i].length; j++)
+					if (board[i][j].equals(Pawn.KING)) {
+						//Check if the king is in the upper right square of the board
+						if (i < 4 && j > 4) {
+							if((row == 4 && (column == 5 || column == 6)) ||
+									(column == 4 && (row == 2 || row == 3)))
+								whiteStrategyValue += defendKingValue;
+						}
+						//Check if the king is in the lower right square of the board
+						else if (i > 4 && j > 4) {
+							if((row == 4 && (column == 5 || column == 6)) ||
+									(column == 4 && (row == 5 || row == 6)))
+								whiteStrategyValue += defendKingValue;
+						}
+						//Check if the king is in the lower left square of the board
+						else if (i > 4 && j < 4) {
+							if((row == 4 && (column == 2 || column == 3)) ||
+									(column == 4 && (row == 5 || row == 6)))
+								whiteStrategyValue += defendKingValue;
+						}
+						//Check if the king is in the upper left square of the board
+						else {
+							if((row == 4 && (column == 2 || column == 3)) ||
+									(column == 4 && (row == 2 || row == 3)))
+								whiteStrategyValue += defendKingValue;
+						}
+					}
+		}
+		//Offensive strategy
+		if(isKing){
+			if((column == 4 && (row == 2 || row == 6)) ||
+					(row == 4 && (column == 2 || column == 6)))
+				whiteStrategyValue += kingInCentralPositionValue;
+		}
 
-		return heuristicsValue;
+		return whiteStrategyValue;
 	}
 
 	private int blackStrategy(int row, int column) {
@@ -252,17 +292,13 @@ public class StateTablut extends State implements Serializable {
 				nBlacksSurroundingCastle++;
 
 			blackStrategyValue += surroundKingFortressValue * (nBlacksSurroundingCastle > 2 ? 2 : 1);
-		}
-		else if (!isKingInCastle()){
-			for(int i = 0; i < board.length; i++){
-				for(int j = 0; j < board[i].length; j++){
-					if(board[i][j].equals(Pawn.KING) &&
-							((row == i && (column == j-1 || column == j+1)) ||
-									(column == j && (row == i-1 || row == i+1)))){
+		} else if (!isKingInCastle()) {
+			for (int i = 0; i < board.length; i++)
+				for (int j = 0; j < board[i].length; j++)
+					if (board[i][j].equals(Pawn.KING) &&
+							((row == i && (column == j - 1 || column == j + 1)) ||
+									(column == j && (row == i - 1 || row == i + 1))))
 						blackStrategyValue += currentBlackNearKingValue;
-					}
-				}
-			}
 		}
 
 		return blackStrategyValue;
