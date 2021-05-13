@@ -11,8 +11,8 @@ import java.security.InvalidParameterException;
 
 public class SembravaQualcuno extends TablutClient {
     public static final String CLIENT_NAME = "sembrava_qualcuno";
-    public static final int MAX_DEPTH = 3;
-    public static final long MAX_TIME = 100000000;
+    public static final int MAX_DEPTH = 4; //TODO Decidere se renderla dinamica
+    public static final long MAX_TIME = 100000000; //TODO Decidere se tenerlo
     public static final int WHITE_PORT = 5800;
     public static final int BLACK_PORT = 5801;
 
@@ -32,6 +32,10 @@ public class SembravaQualcuno extends TablutClient {
         }
 
         String role = args[0];
+        if (!role.equalsIgnoreCase("white") && !role.equalsIgnoreCase("black")) {
+            System.out.println("Player role must be BLACK or WHITE");
+            System.exit(1);
+        }
         int timeout = 0;
         try {
             timeout = Integer.parseInt(args[1]);
@@ -41,8 +45,9 @@ public class SembravaQualcuno extends TablutClient {
         }
         String ipAddress = args[2];
 
-        System.out.println("Connecting to the server...");
+        printGreetings();
 
+        System.out.println("Connecting to the server...");
         SembravaQualcuno client = null;
         try {
             client = new SembravaQualcuno(role, CLIENT_NAME, timeout, ipAddress);
@@ -53,41 +58,37 @@ public class SembravaQualcuno extends TablutClient {
             System.out.println("Unknown host: " + ipAddress);
             System.exit(1);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error connecting to the server: " + e.getMessage());
             System.exit(1);
         }
+        System.out.println("Connected");
         client.run();
     }
 
     @Override
     public void run() {
         try {
+            System.out.println("Declaring name...");
             this.declareName();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error declaring name: " + e.getMessage());
+            System.exit(1);
         }
 
         State state;
 
-        System.out.println("Ashton Tablut game");
-        System.out.println("You are player " + this.getPlayer() + "!");
+        System.out.println("You are player " + this.getPlayer());
+        System.out.println("Start of the match!");
 
         while (true) {
             try {
                 this.read();
             } catch (ClassNotFoundException | IOException e1) {
-                e1.printStackTrace();
+                System.out.println("Error reading the state: " + e1.getMessage());
                 System.exit(1);
             }
-            System.out.println("Current state:");
-            state = this.getCurrentState();
-            //System.out.println(state);
 
-            //TODO Perché?
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-            }
+            state = this.getCurrentState();
 
             // I won
             if (this.getPlayer().equals(State.Turn.WHITE) && state.getTurn().equals(State.Turn.WHITEWIN) ||
@@ -109,19 +110,35 @@ public class SembravaQualcuno extends TablutClient {
             // My turn
             else if (this.getPlayer().equals(this.getCurrentState().getTurn())) {
                 Action chosenMove = null;
-
                 try {
+                    System.out.println("I am thinking...");
                     chosenMove = this.searchStrategy.choseMove(state);
                     System.out.println("Chosen move: " + chosenMove);
+
+                } catch (IOException | ActionException e) {
+                    System.out.println("Error choosing the move: " + e.getMessage());
+                    //TODO Effettuare una mossa a caso?
+                }
+                try {
                     this.write(chosenMove);
-                } catch (IOException | ActionException | ClassNotFoundException e) {
-                    //e.printStackTrace();
+                } catch (IOException | ClassNotFoundException e) {
+                    System.out.println("Error sending the move: " + e.getMessage());
+                    System.exit(1);
                 }
             }
             // Adversary turn
             else {
-                System.out.println("Waiting for your opponent move... ");
+                System.out.println("Waiting for your opponent move...");
             }
         }
+    }
+
+    private static void printGreetings() {
+        System.out.println("                        __                                                 __                          __\n" +
+                "   ________  ____ ___  / /_  _________ __   ______ _    ____ ___  ______ _/ /______  ______  ____     / /\n" +
+                "  / ___/ _ \\/ __ `__ \\/ __ \\/ ___/ __ `/ | / / __ `/   / __ `/ / / / __ `/ / ___/ / / / __ \\/ __ \\   / / \n" +
+                " (__  )  __/ / / / / / /_/ / /  / /_/ /| |/ / /_/ /   / /_/ / /_/ / /_/ / / /__/ /_/ / / / / /_/ /  /_/  \n" +
+                "/____/\\___/_/ /_/ /_/_.___/_/   \\__,_/ |___/\\__,_/____\\__, /\\__,_/\\__,_/_/\\___/\\__,_/_/ /_/\\____/  (_)   \n" +
+                "                                                /_____/ /_/                                              \n");
     }
 }

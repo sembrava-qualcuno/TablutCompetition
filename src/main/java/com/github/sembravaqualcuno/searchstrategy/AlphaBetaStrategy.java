@@ -40,7 +40,6 @@ public class AlphaBetaStrategy implements SearchStrategy {
         for (Action action : state.getActions()) {
             try {
                 int value = alphabeta(game.checkMove(state.clone(), action), maxDepth - 1, NEGATIVE_INFINITY, POSITIVE_INFINITY, false);
-                System.out.println("Value: " + value);
                 if (value > resultValue) {
                     result = action;
                     resultValue = value;
@@ -49,7 +48,6 @@ public class AlphaBetaStrategy implements SearchStrategy {
                 //e.printStackTrace();
             }
         }
-        System.out.println("Value finale: " + resultValue);
         return result;
     }
 
@@ -62,7 +60,6 @@ public class AlphaBetaStrategy implements SearchStrategy {
             for (Action action : state.getActions()) {
                 try {
                     value = Math.max(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, false));
-                    System.out.println(value);
                     alfa = Math.max(alfa, value);
                     if (alfa >= beta)
                         break;
@@ -76,7 +73,6 @@ public class AlphaBetaStrategy implements SearchStrategy {
             for (Action action : actions) {
                 try {
                     value = Math.min(value, alphabeta(game.checkMove(state.clone(), action), depth - 1, alfa, beta, true));
-                    System.out.println(value);
                     beta = Math.min(beta, value);
                     if (beta <= alfa)
                         break;

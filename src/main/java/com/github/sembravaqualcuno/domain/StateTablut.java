@@ -128,14 +128,14 @@ public class StateTablut extends State implements Serializable {
 
 		//Positive heuristics initialization
 		final int kingEscapedValue = 4000;
-		final int kingCouldEscapeValue = 400;
-		final int pawnsEatenValue = 100 + 20 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+		final int kingCouldEscapeValue = 500;
+		final int pawnsEatenValue = 100 + 50 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
 
 		//Negative heuristics initialization
 		final int kingEatenValue = -4000;
 		final int kingEatablePositionValue =  -400;
 		final int eatablePositionValue =  -50;
-		final int pawnsLostValue = -200 + 30 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
+		final int pawnsLostValue = -200 + 70 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
 		final int nearObstacleValue = -50;
 		final int blackBlockingValue = -10;
 		final int drawValue = -30;
