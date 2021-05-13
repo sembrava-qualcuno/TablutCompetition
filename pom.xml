@@ -6,7 +6,7 @@
 
     <groupId>com.github.sembrava-qualcuno</groupId>
     <artifactId>TablutCompetition</artifactId>
-    <version>0.1</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -30,6 +30,14 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <version>3.3.0</version>
             <type>maven-plugin</type>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/junit/junit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
@@ -84,7 +92,7 @@
                                 </manifest>
                             </archive>
                             <descriptorRefs>jar-with-dependencies</descriptorRefs>
-                            <finalName>${randomClient.filename}-${project.version}</finalName>
+                            <finalName>${randomClient.filename}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
                     </execution>
@@ -101,7 +109,7 @@
                                 </manifest>
                             </archive>
                             <descriptorRefs>jar-with-dependencies</descriptorRefs>
-                            <finalName>${humanClient.filename}-${project.version}</finalName>
+                            <finalName>${humanClient.filename}</finalName>
                             <appendAssemblyId>false</appendAssemblyId>
                         </configuration>
                     </execution>
