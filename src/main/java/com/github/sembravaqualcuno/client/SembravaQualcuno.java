@@ -32,6 +32,13 @@ public class SembravaQualcuno extends TablutClient {
         }
 
         String role = args[0];
+        if(!role.equalsIgnoreCase("WHITE") &&
+                !role.equalsIgnoreCase("BLACK")){
+            System.out.println("The role must be either WHITE or BLACK!");
+            System.out.println("Usage: sembrava_qualcuno <role> <timeout> <ipAddress>");
+            System.exit(1);
+        }
+
         int timeout = 0;
         try {
             timeout = Integer.parseInt(args[1]);

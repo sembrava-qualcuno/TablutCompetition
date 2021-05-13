@@ -127,15 +127,16 @@ public class StateTablut extends State implements Serializable {
 		initialize();
 
 		//Positive heuristics initialization
-		final int kingEscapedValue = 4000;
-		final int kingCouldEscapeValue = 400;
-		final int pawnsEatenValue = 100 + 20 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+		final int kingEscapedValue = 8000;
+		final int kingCouldEscapeValue = 500;
+		final int pawnsEatenValue = 100 + 100 * (initialPawnsBlack - this.getNumberOf(Pawn.BLACK));
+		final int couldEatValue = 50;
 
 		//Negative heuristics initialization
-		final int kingEatenValue = -4000;
+		final int kingEatenValue = -8000;
 		final int kingEatablePositionValue =  -400;
 		final int eatablePositionValue =  -50;
-		final int pawnsLostValue = -200 + 30 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
+		final int pawnsLostValue = -200 + 150 * (initialPawnsWhite - this.getNumberOf(Pawn.WHITE));
 		final int nearObstacleValue = -50;
 		final int blackBlockingValue = -10;
 		final int drawValue = -30;
@@ -172,10 +173,14 @@ public class StateTablut extends State implements Serializable {
 				fixedHeuristicsValue += getEatableOrObstacleHeuristic(board[row][column].equals(Pawn.KING), kingEatablePositionValue,
 						eatablePositionValue, nearObstacleValue, row, column);
 
+				//Check if the current pawn can eat some pawn near him
+				fixedHeuristicsValue += couldEatHeuristic(couldEatValue, row, column);
+
 				//If it's the black's turn, calculate black-only strategy and add it to fixedHeuristics
 				if(this.getTurn().equals(Turn.BLACK) && board[row][column].equals(Pawn.BLACK)){
 					fixedHeuristicsValue += blackStrategy(row, column);
 				}
+
 				//If it's the white's turn, calculate white-only strategy and add it to fixedHeuristics
 				if(this.getTurn().equals(Turn.WHITE) && (board[row][column].equals(Pawn.KING) ||
 						board[row][column].equals(Pawn.WHITE))){
@@ -190,10 +195,49 @@ public class StateTablut extends State implements Serializable {
 				swappableHeuristicsValue : -swappableHeuristicsValue);
 	}
 
+	/*
+	 * This function checks if the current state could possibly result in an enemy pawn eaten in the next turn.
+	 * This occurence is considered in the most general form (without considering special eating moves, e.g. for the king)
+	 * and as such is valid for both black and white players
+	 */
+	private int couldEatHeuristic(int couldEatValue, int row, int column) {
+		int heuristicsValue = 0;
+
+		//Check if I have an enemy on the right, if so check if the enemy is eatable from his right
+		if((column != 8 && column != 7) && ((this.getTurn().equals(Turn.WHITE) && this.getBoard()[row][column + 1].equals(Pawn.BLACK)) ||
+				(this.getTurn().equals(Turn.BLACK) && (this.getBoard()[row][column + 1].equals(Pawn.WHITE) ||
+						this.getBoard()[row][column + 1].equals(Pawn.KING)))))
+			heuristicsValue += (isEatableFromRight(couldEatValue, row, column + 1,
+					(this.getTurn().equals(Turn.BLACK) ? Turn.WHITE : Turn.BLACK)));
+
+		//Check if I have an opponent on the left, if so check if the enemy is eatable from his left
+		if((column != 0 && column != 1) && ((this.getTurn().equals(Turn.WHITE) && this.getBoard()[row][column - 1].equals(Pawn.BLACK)) ||
+				(this.getTurn().equals(Turn.BLACK) && (this.getBoard()[row][column - 1].equals(Pawn.WHITE) ||
+						this.getBoard()[row][column - 1].equals(Pawn.KING)))))
+			heuristicsValue += isEatableFromLeft(couldEatValue, row, column - 1,
+					(this.getTurn().equals(Turn.BLACK) ? Turn.WHITE : Turn.BLACK));
+
+		//Check if I have an opponent on the top, if so check if the enemy is eatable from his top
+		if((row != 0 && row != 1) && ((this.getTurn().equals(Turn.WHITE) && this.getBoard()[row - 1][column].equals(Pawn.BLACK)) ||
+				(this.getTurn().equals(Turn.BLACK) && (this.getBoard()[row - 1][column].equals(Pawn.WHITE) ||
+						this.getBoard()[row - 1][column].equals(Pawn.KING)))))
+			heuristicsValue += isEatableFromTop(couldEatValue, row - 1, column,
+					(this.getTurn().equals(Turn.BLACK) ? Turn.WHITE : Turn.BLACK));
+
+		//Check if I have an opponent on the bottom, if so check if the enemy is eatable from his bottom
+		if((row != 8 && row != 7) && ((this.getTurn().equals(Turn.WHITE) && this.getBoard()[row + 1][column].equals(Pawn.BLACK)) ||
+				(this.getTurn().equals(Turn.BLACK) && (this.getBoard()[row + 1][column].equals(Pawn.WHITE) ||
+						this.getBoard()[row + 1][column].equals(Pawn.KING)))))
+			heuristicsValue += isEatableFromBottom(couldEatValue, row + 1, column,
+					(this.getTurn().equals(Turn.BLACK) ? Turn.WHITE : Turn.BLACK));
+
+		return heuristicsValue;
+	}
+
 	private int whiteStrategy(boolean isKing, int row, int column) {
 		int whiteStrategyValue = 0;
-		final int defendKingValue = 80;
-		final int kingInCentralPositionValue = 80;
+		final int defendKingValue = 100;
+		final int kingInCentralPositionValue = 150;
 
 		//Defensive strategy
 		//Check if the king is out of the castle and going towards an escape,
@@ -240,11 +284,11 @@ public class StateTablut extends State implements Serializable {
 
 	private int blackStrategy(int row, int column) {
 		int blackStrategyValue = 0;
-		final int blockKingCentralPositionValue = 80;
-		final int surroundKingFortressValue = 100;
+		final int blockKingCentralPositionValue = 100;
+		final int surroundKingFortressValue = 300;
 		int nBlacksSurroundingCastle = 0;
-		final int currentBlackBlockingEscapeValue = 80;
-		final int currentBlackNearKingValue = 80;
+		final int currentBlackBlockingEscapeValue = 180;
+		final int currentBlackNearKingValue = 100;
 
 		//Defensive strategy
 
@@ -382,23 +426,23 @@ public class StateTablut extends State implements Serializable {
 			//Check if the pawn is on the left side of the fortress
 			if (row == 4 && column == 3) {
 				heuristicsValue += nearObstacleValue +
-						isEatableFromLeft(eatablePositionValue, row, column);
+						isEatableFromLeft(eatablePositionValue, row, column, this.getTurn());
 			}
 			//Check if the pawn is on the right side of the fortress
 			else if (row == 4 && column == 5) {
 				heuristicsValue += nearObstacleValue +
-						isEatableFromRight(eatablePositionValue, row, column);
+						isEatableFromRight(eatablePositionValue, row, column, this.getTurn());
 
 			}
 			//Check if the pawn is on the top side of the fortress
 			else if (row == 3 && column == 4) {
 				heuristicsValue += nearObstacleValue +
-					isEatableFromTop(eatablePositionValue, row, column);
+					isEatableFromTop(eatablePositionValue, row, column, this.getTurn());
 			}
 			//Check if the pawn is on the bottom side of the fortress
 			else if (row == 5 && column == 4) {
 				heuristicsValue += nearObstacleValue +
-				isEatableFromBottom(eatablePositionValue, row, column);
+				isEatableFromBottom(eatablePositionValue, row, column, this.getTurn());
 			}
 		}//Pawn is not the king
 
@@ -418,7 +462,7 @@ public class StateTablut extends State implements Serializable {
 					this.getTurn().equals(Turn.BLACK) && board[row][column + 1].equals(Pawn.WHITE) ||
 					board[row][column + 1].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromLeft(isKing ? kingEatablePositionValue : eatablePositionValue,
-						row, column);
+						row, column, this.getTurn());
 			}
 
 			//Check if there is an enemy/obstacle on the left
@@ -426,7 +470,7 @@ public class StateTablut extends State implements Serializable {
 					this.getTurn().equals(Turn.BLACK) && board[row][column - 1].equals(Pawn.WHITE) ||
 					board[row][column - 1].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromRight(isKing ? kingEatablePositionValue : eatablePositionValue,
-						row, column);
+						row, column, this.getTurn());
 			}
 
 			//Check if there is an enemy/obstacle on the bottom
@@ -434,7 +478,7 @@ public class StateTablut extends State implements Serializable {
 					this.getTurn().equals(Turn.BLACK) && board[row + 1][column].equals(Pawn.WHITE) ||
 					board[row + 1][column].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromTop(isKing ? kingEatablePositionValue : eatablePositionValue,
-						row, column);
+						row, column, this.getTurn());
 			}
 
 			//Check if there is an enemy/obstacle on the top
@@ -442,7 +486,7 @@ public class StateTablut extends State implements Serializable {
 					this.getTurn().equals(Turn.BLACK) && board[row - 1][column].equals(Pawn.WHITE) ||
 					board[row - 1][column].equals(Pawn.CAMP)) {
 				heuristicsValue += isEatableFromBottom(isKing ? kingEatablePositionValue : eatablePositionValue,
-						row, column);
+						row, column, this.getTurn());
 			}
 		}
 
@@ -453,20 +497,20 @@ public class StateTablut extends State implements Serializable {
 	 * This function checks if some enemy is clear to eat from the left of the current pawn
 	 * or if some enemy can reach the left of the current pawn from the top or the bottom
 	 */
-	private int isEatableFromLeft(int eatablePositionValue, int row, int column){
+	private int isEatableFromLeft(int eatablePositionValue, int row, int column, Turn turn){
 		int heuristicsValue = 0;
 		//Check if the first position to my left is empty as it will be pointless to go on checking otherwise
 		if (board[row][column - 1].equals(Pawn.EMPTY)) {
 			//Check if there is an enemy that has a clear path on the left of the pawn
-			if (isClearToEatLeft(row, column - 2))
+			if (isClearToEatLeft(row, column - 2, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my left from the top
-			if (isClearToEatTop(row - 1, column - 1))
+			if (isClearToEatTop(row - 1, column - 1, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my left from the bottom
-			if (isClearToEatBottom(row + 1, column - 1))
+			if (isClearToEatBottom(row + 1, column - 1, turn))
 				heuristicsValue += eatablePositionValue;
 		}
 		return heuristicsValue;
@@ -476,20 +520,20 @@ public class StateTablut extends State implements Serializable {
 	 * This function checks if some enemy is clear to eat from the right of the current pawn
 	 * or if some enemy can reach the right of the current pawn from the top or the bottom
 	 */
-	private int isEatableFromRight(int eatablePositionValue, int row, int column){
+	private int isEatableFromRight(int eatablePositionValue, int row, int column, Turn turn){
 		int heuristicsValue = 0;
 		//Check if the first position to my right is empty as it will be pointless to go on checking otherwise
 		if (board[row][column + 1].equals(Pawn.EMPTY)) {
 			//Check if there is an enemy that has a clear path on the right of the pawn
-			if (isClearToEatRight(row, column + 2))
+			if (isClearToEatRight(row, column + 2, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my right from the top
-			if (isClearToEatTop(row - 1, column + 1))
+			if (isClearToEatTop(row - 1, column + 1, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my right from the bottom
-			if (isClearToEatBottom(row + 1, column + 1))
+			if (isClearToEatBottom(row + 1, column + 1, turn))
 				heuristicsValue += eatablePositionValue;
 		}
 		return heuristicsValue;
@@ -499,20 +543,20 @@ public class StateTablut extends State implements Serializable {
 	 * This function checks if some enemy is clear to eat from the top of the current pawn
 	 * or if some enemy can reach the top of the current pawn from the left or the right
 	 */
-	private int isEatableFromTop(int eatablePositionValue, int row, int column){
+	private int isEatableFromTop(int eatablePositionValue, int row, int column, Turn turn){
 		int heuristicsValue = 0;
 		//Check if the first position to my top side is empty as it will be pointless to go on checking otherwise
 		if (board[row - 1][column].equals(Pawn.EMPTY)) {
 			//Check if there is an enemy that has a clear path on the top of the pawn
-			if(isClearToEatTop(row - 2, column))
+			if(isClearToEatTop(row - 2, column, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my top side from the left
-			if (isClearToEatLeft(row - 1, column - 1))
+			if (isClearToEatLeft(row - 1, column - 1, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my top side from the right
-			if(isClearToEatRight(row - 1, column + 1))
+			if(isClearToEatRight(row - 1, column + 1, turn))
 				heuristicsValue += eatablePositionValue;
 		}
 		return heuristicsValue;
@@ -522,20 +566,20 @@ public class StateTablut extends State implements Serializable {
 	 * This function checks if some enemy is clear to eat from the bottom of the current pawn
 	 * or if some enemy can reach the bottom of the current pawn from the left or the right
 	 */
-	private int isEatableFromBottom(int eatablePositionValue, int row, int column){
+	private int isEatableFromBottom(int eatablePositionValue, int row, int column, Turn turn){
 		int heuristicsValue = 0;
 		//Check if the first position to my bottom side is empty as it will be pointless to go on checking otherwise
 		if (board[row + 1][column].equals(Pawn.EMPTY)) {
 			//Check if there is an enemy that has a clear path on the bottom of the pawn
-			if(isClearToEatBottom(row + 2, column))
+			if(isClearToEatBottom(row + 2, column, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my bottom side from the left
-			if(isClearToEatLeft(row + 1, column - 1))
+			if(isClearToEatLeft(row + 1, column - 1, turn))
 				heuristicsValue += eatablePositionValue;
 
 			//Check if there are other pawns that could get to my bottom side from the right
-			if(isClearToEatRight(row + 1, column + 1))
+			if(isClearToEatRight(row + 1, column + 1, turn))
 				heuristicsValue += eatablePositionValue;
 		}
 		return heuristicsValue;
@@ -546,14 +590,14 @@ public class StateTablut extends State implements Serializable {
 	 * This is possible if he's on the left of the pawn and neither an ally nor an obstacle is present
 	 * between the current pawn and the enemy
 	 */
-	private boolean isClearToEatLeft(int row, int column){
+	private boolean isClearToEatLeft(int row, int column, Turn turn){
 		for (int i = column; i >= 0; i--) {
-			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
-					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
+			if (turn.equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
+					turn.equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
 					board[row][i].equals(Pawn.THRONE) || board[row][i].equals(Pawn.CAMP))
 				return false;
-			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
-					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
+			if (turn.equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
+					turn.equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -565,14 +609,14 @@ public class StateTablut extends State implements Serializable {
 	 * This is possible if he's on the right of the pawn and neither an ally nor an obstacle is present
 	 * between the current pawn and the enemy
 	 */
-	private boolean isClearToEatRight(int row, int column) {
+	private boolean isClearToEatRight(int row, int column, Turn turn) {
 		for (int i = column; i < board[row].length; i++) {
-			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
-					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
+			if (turn.equals(Turn.WHITE) && board[row][i].equals(Pawn.WHITE) ||
+					turn.equals(Turn.BLACK) && board[row][i].equals(Pawn.BLACK) ||
 					board[row][i].equals(Pawn.THRONE) || board[row][i].equals(Pawn.CAMP))
 				return false;
-			if (this.getTurn().equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
-					this.getTurn().equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
+			if (turn.equals(Turn.WHITE) && board[row][i].equals(Pawn.BLACK) ||
+					turn.equals(Turn.BLACK) && board[row][i].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -584,14 +628,14 @@ public class StateTablut extends State implements Serializable {
 	 * This is possible if he's on the top of the pawn and neither an ally nor an obstacle is present
 	 * between the current pawn and the enemy
 	 */
-	private boolean isClearToEatTop(int row, int column) {
+	private boolean isClearToEatTop(int row, int column, Turn turn) {
 		for (int i = row; i >= 0; i--) {
-			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
-					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
+			if (turn.equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
+					turn.equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
 					board[i][column].equals(Pawn.THRONE) || board[i][column].equals(Pawn.CAMP))
 				return false;
-			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
-					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
+			if (turn.equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
+					turn.equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -603,14 +647,14 @@ public class StateTablut extends State implements Serializable {
 	 * This is possible if he's on the bottom of the pawn and neither an ally nor an obstacle is present
 	 * between the current pawn and the enemy
 	 */
-	private boolean isClearToEatBottom(int row, int column) {
+	private boolean isClearToEatBottom(int row, int column, Turn turn) {
 		for (int i = row; i < board.length; i++) {
-			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
-					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
+			if (turn.equals(Turn.WHITE) && board[i][column].equals(Pawn.WHITE) ||
+					turn.equals(Turn.BLACK) && board[i][column].equals(Pawn.BLACK) ||
 					board[i][column].equals(Pawn.THRONE) || board[i][column].equals(Pawn.CAMP))
 				return false;
-			if (this.getTurn().equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
-					this.getTurn().equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
+			if (turn.equals(Turn.WHITE) && board[i][column].equals(Pawn.BLACK) ||
+					turn.equals(Turn.BLACK) && board[i][column].equals(Pawn.WHITE)) {
 				return true;
 			}
 		}
@@ -630,25 +674,25 @@ public class StateTablut extends State implements Serializable {
 			if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
-				return isEatableFromBottom(kingEatablePositionValue, row, column);
+				return isEatableFromBottom(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are three enemies to the top, right and bottom of the castle
 			else if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
-				return isEatableFromLeft(kingEatablePositionValue, row, column);
+				return isEatableFromLeft(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are three enemies to the right, bottom and left of the castle
 			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
-				return isEatableFromTop(kingEatablePositionValue, row, column);
+				return isEatableFromTop(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are three enemies to the bottom, left and top of the castle
 			else if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
-				return isEatableFromRight(kingEatablePositionValue, row, column);
+				return isEatableFromRight(kingEatablePositionValue, row, column, this.getTurn());
 		}//King in castle
 
 		//Check if the king is on the left of the castle
@@ -656,17 +700,17 @@ public class StateTablut extends State implements Serializable {
 			//Check if there are two enemies on the left and on the top
 			if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
-			return isEatableFromBottom(kingEatablePositionValue, row, column);
+			return isEatableFromBottom(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are two enemies on the bottom and on the left
 			else if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
-				return isEatableFromTop(kingEatablePositionValue, row, column);
+				return isEatableFromTop(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are two enemies on the top and on the bottom
 			else if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
-				return isEatableFromLeft(kingEatablePositionValue, row, column);
+				return isEatableFromLeft(kingEatablePositionValue, row, column, this.getTurn());
 		}//King left of the castle
 
 		//Check if the king is on top of the castle
@@ -674,17 +718,17 @@ public class StateTablut extends State implements Serializable {
 			//Check if there are two enemies on the left and on the top
 			if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
-				return isEatableFromRight(kingEatablePositionValue, row, column);
+				return isEatableFromRight(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are two enemies on the top and on the right
 			else if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
-				return isEatableFromLeft(kingEatablePositionValue, row, column);
+				return isEatableFromLeft(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are two enemies on the right and on the left
 			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
-				return isEatableFromTop(kingEatablePositionValue, row, column);
+				return isEatableFromTop(kingEatablePositionValue, row, column, this.getTurn());
 		}//King in top of the castle
 
 		//Check if the king is on the right of the castle
@@ -692,17 +736,17 @@ public class StateTablut extends State implements Serializable {
 			//Check if there are two enemies on the top and on the right
 			if(this.getBoard()[row - 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
-				return isEatableFromBottom(kingEatablePositionValue, row, column);
+				return isEatableFromBottom(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are two enemies on the right and on the bottom
 			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
-				return isEatableFromTop(kingEatablePositionValue, row, column);
+				return isEatableFromTop(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are two enemies on the bottom and on the top
 			else if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row - 1][column].equals(Pawn.BLACK))
-				return isEatableFromRight(kingEatablePositionValue, row, column);
+				return isEatableFromRight(kingEatablePositionValue, row, column, this.getTurn());
 		}//King right of the castle
 
 		//Check if the king is at the bottom of the castle
@@ -710,16 +754,16 @@ public class StateTablut extends State implements Serializable {
 			//Check if there are two enemies on the bottom and on the left
 			if(this.getBoard()[row + 1][column].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column - 1].equals(Pawn.BLACK))
-				return isEatableFromRight(kingEatablePositionValue, row, column);
+				return isEatableFromRight(kingEatablePositionValue, row, column, this.getTurn());
 
 			//Check if there are two enemies on the right and on the bottom
 			else if(this.getBoard()[row][column + 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row + 1][column].equals(Pawn.BLACK))
-				return isEatableFromLeft(kingEatablePositionValue, row, column);
+				return isEatableFromLeft(kingEatablePositionValue, row, column, this.getTurn());
 			//Check if there are two enemies on the left and on the right
 			else if(this.getBoard()[row][column - 1].equals(Pawn.BLACK) &&
 					this.getBoard()[row][column + 1].equals(Pawn.BLACK))
-				return isEatableFromBottom(kingEatablePositionValue, row, column);
+				return isEatableFromBottom(kingEatablePositionValue, row, column, this.getTurn());
 		}//King bottom of the castle
 
 		return 0;
