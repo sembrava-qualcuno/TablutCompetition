@@ -122,8 +122,9 @@ public class StateTablut extends State implements Serializable {
 	 * This heuristics function initializes the values for white pawns, then it converts some values
 	 * by multiplying them by -1 if incoherent with black pawns behaviour
 	 * @return The heuristics value related to this state
+	 * @param depth
 	 */
-	public int heuristicsFunction() {
+	public int heuristicsFunction(int depth) {
 		initialize();
 
 		//Positive heuristics initialization
@@ -143,10 +144,10 @@ public class StateTablut extends State implements Serializable {
 		//Check for terminal states and exit (convert value if needed)
 		//Check if the king has reached an escape
 		if(this.getTurn().equals(Turn.WHITEWIN))
-			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEscapedValue: -kingEscapedValue);
+			return (GameAshtonTablut.player.equals(Turn.WHITE) ? (kingEscapedValue + depth): (-kingEscapedValue - depth));
 		//Check if the king has been eaten
 		else if (this.getTurn().equals(Turn.BLACKWIN))
-			return (GameAshtonTablut.player.equals(Turn.WHITE) ? kingEatenValue: -kingEatenValue);
+			return (GameAshtonTablut.player.equals(Turn.WHITE) ? (kingEatenValue + depth): (-kingEatenValue - depth));
 		else if(this.getTurn().equals(Turn.DRAW))
 			return drawValue;
 

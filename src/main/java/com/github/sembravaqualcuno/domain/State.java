@@ -233,7 +233,7 @@ public abstract class State {
 
     public abstract boolean isTerminal();
 
-    public abstract int heuristicsFunction();
+    public abstract int heuristicsFunction(int depth);
 
     public abstract List<Action> getActions() throws IOException;
 

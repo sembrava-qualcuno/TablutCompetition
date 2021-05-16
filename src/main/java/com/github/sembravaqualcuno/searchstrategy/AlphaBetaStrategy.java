@@ -14,7 +14,7 @@ import java.util.List;
  * @author Luca Bongiovanni
  */
 public class AlphaBetaStrategy implements SearchStrategy {
-    private static final int POSITIVE_INFINITY = 100000;
+    private static final int POSITIVE_INFINITY = 100000000;
     private static final int NEGATIVE_INFINITY = -POSITIVE_INFINITY;
 
     private Game game;
@@ -53,7 +53,7 @@ public class AlphaBetaStrategy implements SearchStrategy {
 
     private int alphabeta(State state, int depth, int alfa, int beta, boolean maximizingPlayer) throws IOException, ActionException {
         if (depth == 0 || state.isTerminal())
-            return state.heuristicsFunction() + depth;
+            return state.heuristicsFunction(depth);
         int value;
         if (maximizingPlayer) {
             value = NEGATIVE_INFINITY;
